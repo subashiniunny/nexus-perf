@@ -1,8 +1,9 @@
 /*
  * Copyright (c) 2007-2013 Sonatype, Inc. All rights reserved.
- *
- * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
- * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * 
+ * This program and the accompanying materials are made available under the terms of the Eclipse
+ * Public License Version 1.0, which accompanies this distribution and is available at
+ * http://www.eclipse.org/legal/epl-v10.html.
  */
 package com.sonatype.nexus.perftest;
 
@@ -11,11 +12,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
 import com.sonatype.nexus.perftest.db.TestExecution;
 import com.sonatype.nexus.perftest.db.TestExecutions;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class PerformanceTest {
 
@@ -82,7 +83,7 @@ public class PerformanceTest {
       execution.addMetric(metric.getName() + ".failureCount", metric.getFailures());
     }
 
-    if (!buildId.equals("-")) {
+    if (buildId != null && !buildId.equals("-")) {
       TestExecutions.insert(execution);
     }
 
