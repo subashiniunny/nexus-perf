@@ -164,4 +164,12 @@ public class ClientSwarm {
   public Metric getMetric() {
     return metric;
   }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("Swarm{");
+    sb.append("name='").append(metric.getName()).append('\'');
+    sb.append('}');
+    return sb.toString();
+  }
 }

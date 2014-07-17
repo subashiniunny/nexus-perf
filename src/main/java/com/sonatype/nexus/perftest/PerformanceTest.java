@@ -116,7 +116,16 @@ public class PerformanceTest {
     }
   }
 
-    public Collection<ClientSwarm> getSwarms() {
-        return Collections.unmodifiableCollection(new ArrayList<>(swarms));
-    }
+  public Collection<ClientSwarm> getSwarms() {
+    return Collections.unmodifiableCollection(new ArrayList<>(swarms));
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("PerformanceTest{");
+    sb.append("name='").append(name).append('\'');
+    sb.append('}');
+    return sb.toString();
+  }
+
 }
