@@ -38,6 +38,11 @@ public class ClientSwarm {
     <T> void setContextValue(String key, T value);
 
     <T> T getContextValue(String key);
+
+    /**
+     * timestamp of the request relative to the test start time
+     */
+    long getTimestamp();
   }
 
   @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.PROPERTY, property = "class")
@@ -138,6 +143,11 @@ public class ClientSwarm {
     @Override
     public <T> void setContextValue(String key, T value) {
       context.put(key, value);
+    }
+
+    @Override
+    public long getTimestamp() {
+      return rate.getTimestamp();
     }
   }
 

@@ -71,4 +71,8 @@ public class RequestRate {
   public RequestRate offsetStart(long millis) {
     return new RequestRate(start + millis, period);
   }
+
+  public long getTimestamp() {
+    return System.currentTimeMillis() - start;
+  }
 }
