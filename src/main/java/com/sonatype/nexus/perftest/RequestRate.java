@@ -1,8 +1,9 @@
 /*
  * Copyright (c) 2007-2013 Sonatype, Inc. All rights reserved.
- *
- * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
- * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * 
+ * This program and the accompanying materials are made available under the terms of the Eclipse
+ * Public License Version 1.0, which accompanies this distribution and is available at
+ * http://www.eclipse.org/legal/epl-v10.html.
  */
 package com.sonatype.nexus.perftest;
 
@@ -34,9 +35,13 @@ public class RequestRate {
   }
 
   private RequestRate(int period) {
+    this(System.currentTimeMillis(), period);
+  }
+
+  private RequestRate(long start, int period) {
     // TODO assert period is at least 10
     this.period = period;
-    this.start = System.currentTimeMillis() + rnd.nextInt(period); // delay first event
+    this.start = start + rnd.nextInt(period); // delay first event
   }
 
   @JsonCreator
@@ -52,7 +57,8 @@ public class RequestRate {
   }
 
   public void delay() throws InterruptedException {
-    long next = start + (((long) period) * ((long) count.getAndIncrement())); // time of the next event
+    long next = start + (((long) period) * ((long) count.getAndIncrement())); // time of the next
+                                                                              // event
     long delay = Math.max(0, next - System.currentTimeMillis()); // delay until the next event
 
     Thread.sleep(delay);
@@ -60,5 +66,9 @@ public class RequestRate {
 
   public int getPeriod() {
     return period;
+  }
+
+  public RequestRate offsetStart(long millis) {
+    return new RequestRate(start + millis, period);
   }
 }

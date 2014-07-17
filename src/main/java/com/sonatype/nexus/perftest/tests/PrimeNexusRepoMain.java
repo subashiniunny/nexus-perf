@@ -40,7 +40,7 @@ public class PrimeNexusRepoMain {
 
     final DownloadOperation download = new DownloadOperation(nexus, "public", paths);
     final RequestRate downloadRate = new RequestRate(5, TimeUnit.SECONDS);
-    final ClientSwarm downloaders = new ClientSwarm("download", download, downloadRate, DOWNLOAD_TCOUNT);
+    final ClientSwarm downloaders = new ClientSwarm("download", download, null, downloadRate, DOWNLOAD_TCOUNT);
     final Metric downloadMetric = downloaders.getMetric();
 
     downloaders.start();

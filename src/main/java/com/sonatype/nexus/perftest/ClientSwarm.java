@@ -1,8 +1,9 @@
 /*
  * Copyright (c) 2007-2013 Sonatype, Inc. All rights reserved.
- *
- * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
- * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * 
+ * This program and the accompanying materials are made available under the terms of the Eclipse
+ * Public License Version 1.0, which accompanies this distribution and is available at
+ * http://www.eclipse.org/legal/epl-v10.html.
  */
 package com.sonatype.nexus.perftest;
 
@@ -18,7 +19,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
 /**
- * Models a group of similar clients. The clients performs the same operation. Request rate is configured for the swarm.
+ * Models a group of similar clients. The clients performs the same operation. Request rate is
+ * configured for the swarm.
  */
 public class ClientSwarm {
 
@@ -58,17 +60,29 @@ public class ClientSwarm {
 
     private final HashMap<String, Object> context = new HashMap<>();
 
-    public ClientThread(String swarmName, int clientId, Operation operation, Metric metric, RequestRate rate) {
+    private Duration initialDelay;
+
+    public ClientThread(String swarmName, int clientId, Operation operation, Metric metric, Duration initialDelay,
+        RequestRate rate) {
       super(String.format("%s-%d", swarmName, clientId));
       this.swarmName = swarmName;
       this.clientId = clientId;
       this.operation = operation;
       this.metric = metric;
-      this.rate = rate;
+      this.initialDelay = initialDelay;
+      this.rate = initialDelay != null ? rate.offsetStart(initialDelay.toMillis()) : rate;
     }
 
     @Override
     public final void run() {
+      if (initialDelay != null) {
+        try {
+          sleep(initialDelay.toMillis());
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+
       while (true) {
         requestId++;
         try {
@@ -128,13 +142,17 @@ public class ClientSwarm {
   }
 
   @JsonCreator
-  public ClientSwarm(@JsonProperty("name") String name, @JsonProperty("operation") Operation operation,
-      @JsonProperty("rate") RequestRate rate, @JsonProperty("numberOfClients") int clientCount) {
+  public ClientSwarm( //
+      @JsonProperty("name") String name, //
+      @JsonProperty("operation") Operation operation, //
+      @JsonProperty(value = "initialDelay", required = false) Duration initialDelay, //
+      @JsonProperty("rate") RequestRate rate, //
+      @JsonProperty("numberOfClients") int clientCount) {
 
     metric = new Metric(name);
     List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < clientCount; i++) {
-      threads.add(new ClientThread(name, i, operation, metric, rate));
+      threads.add(new ClientThread(name, i, operation, metric, initialDelay, rate));
     }
     this.threads = Collections.unmodifiableList(threads);
   }

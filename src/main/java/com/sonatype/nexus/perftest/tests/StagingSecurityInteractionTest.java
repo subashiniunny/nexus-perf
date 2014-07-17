@@ -69,19 +69,19 @@ public class StagingSecurityInteractionTest {
     HttpdLogParser paths = new HttpdLogParser(new File("ossrh-2013-08-01-ssl.public.log.gz"));
     final DownloadOperation download = new DownloadOperation(nexus, "releases", paths);
     final RequestRate downloadRate = new RequestRate(5, TimeUnit.SECONDS);
-    final ClientSwarm downloaders = new ClientSwarm("download", download, downloadRate, DOWNLOAD_TCOUNT);
+    final ClientSwarm downloaders = new ClientSwarm("download", download, null, downloadRate, DOWNLOAD_TCOUNT);
     final Metric downloadMetric = downloaders.getMetric();
 
     // staging client swarm
     final StagingOperation stage = new StagingOperation(nexus, new File("pom.xml"));
     final RequestRate stageRate = new RequestRate(2, TimeUnit.MINUTES);
-    final ClientSwarm stagers = new ClientSwarm("stage", stage, stageRate, STAGE_TCOUNT);
+    final ClientSwarm stagers = new ClientSwarm("stage", stage, null, stageRate, STAGE_TCOUNT);
     final Metric stageMetric = stagers.getMetric();
 
     // project provisioning
     final ProjectProvisioningOperation provisioning = new ProjectProvisioningOperation(nexus);
     final RequestRate provisioningRate = new RequestRate(1, TimeUnit.MINUTES);
-    final ClientSwarm provisioners = new ClientSwarm("provisioning", provisioning, provisioningRate, 0);
+    final ClientSwarm provisioners = new ClientSwarm("provisioning", provisioning, null, provisioningRate, 0);
     final Metric provisioningMetric = provisioners.getMetric();
 
     downloaders.start();

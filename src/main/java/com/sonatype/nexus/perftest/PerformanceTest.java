@@ -10,13 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.StringTokenizer;
-import java.util.concurrent.TimeUnit;
 
 import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
 import com.sonatype.nexus.perftest.db.TestExecution;
 import com.sonatype.nexus.perftest.db.TestExecutions;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -31,28 +28,6 @@ public class PerformanceTest {
   private final Duration duration;
 
   private final Collection<ClientSwarm> swarms;
-
-  public static class Duration {
-    private final long value;
-
-    private final TimeUnit unit;
-
-    public Duration(long value, TimeUnit unit) {
-      this.value = value;
-      this.unit = unit;
-    }
-
-    @JsonCreator
-    public Duration(String value) {
-      StringTokenizer st = new StringTokenizer(value);
-      this.value = Long.parseLong(st.nextToken());
-      this.unit = TimeUnit.valueOf(st.nextToken());
-    }
-
-    public long toMillis() {
-      return unit.toMillis(value);
-    }
-  }
 
   @JsonCreator
   public PerformanceTest(@JsonProperty("name") String name, @JsonProperty("duration") Duration duration,

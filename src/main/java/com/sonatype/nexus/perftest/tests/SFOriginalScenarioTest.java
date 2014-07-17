@@ -38,14 +38,14 @@ public class SFOriginalScenarioTest {
     HttpdLogParser paths = new HttpdLogParser(new File("maven-3.1-build-artifact-access.log"));
     BatchDownloadsOperation provision = new BatchDownloadsOperation(nexus, "public", paths);
     final RequestRate provisionRate = new RequestRate(5 * 2000, TimeUnit.DAYS);
-    final ClientSwarm provisioners = new ClientSwarm("provision", provision, provisionRate, DOWNLOAD_TCOUNT);
+    final ClientSwarm provisioners = new ClientSwarm("provision", provision, null, provisionRate, DOWNLOAD_TCOUNT);
     final Metric provisionMetric = provisioners.getMetric();
 
     // deploy artifacts to unique repositories
     UniqueRepositoryDeployOperation deploy =
         new UniqueRepositoryDeployOperation(nexus, new File(basedir), new File("pom.xml"), true, false);
     final RequestRate deployRate = new RequestRate(5 * 400, TimeUnit.DAYS);
-    final ClientSwarm deployers = new ClientSwarm("deploy", deploy, deployRate, DEPLOY_TCOUNT);
+    final ClientSwarm deployers = new ClientSwarm("deploy", deploy, null, deployRate, DEPLOY_TCOUNT);
     final Metric deployMetric = deployers.getMetric();
 
     provisioners.start();
