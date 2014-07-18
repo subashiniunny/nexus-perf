@@ -7,6 +7,7 @@
  */
 package com.sonatype.nexus.perftest;
 
+import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,7 +43,7 @@ public class ClientSwarm {
     /**
      * timestamp of the request relative to the test start time
      */
-    long getTimestamp();
+    long getTestTimeMillis();
   }
 
   @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.PROPERTY, property = "class")
@@ -65,33 +66,21 @@ public class ClientSwarm {
 
     private final HashMap<String, Object> context = new HashMap<>();
 
-    private Duration initialDelay;
-
-    public ClientThread(String swarmName, int clientId, Operation operation, Metric metric, Duration initialDelay,
-        RequestRate rate) {
+    public ClientThread(String swarmName, int clientId, Operation operation, Metric metric, RequestRate rate) {
       super(String.format("%s-%d", swarmName, clientId));
       this.swarmName = swarmName;
       this.clientId = clientId;
       this.operation = operation;
       this.metric = metric;
-      this.initialDelay = initialDelay;
-      this.rate = initialDelay != null ? rate.offsetStart(initialDelay.toMillis()) : rate;
+      this.rate = rate;
     }
 
     @Override
     public final void run() {
-      if (initialDelay != null) {
-        try {
-          sleep(initialDelay.toMillis());
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-
       while (true) {
         requestId++;
         try {
-          rate.delay();
+          sleep(rate.nextDelayMillis());
         } catch (InterruptedException e) {
           break;
         }
@@ -102,7 +91,7 @@ public class ClientSwarm {
         try {
           operation.perform(this);
           success = true;
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | InterruptedIOException e) {
           // TODO more graceful shutdown
           break;
         } catch (Exception e) {
@@ -146,8 +135,8 @@ public class ClientSwarm {
     }
 
     @Override
-    public long getTimestamp() {
-      return rate.getTimestamp();
+    public long getTestTimeMillis() {
+      return System.currentTimeMillis() - rate.getStartTimeMillis();
     }
   }
 
@@ -159,10 +148,12 @@ public class ClientSwarm {
       @JsonProperty("rate") RequestRate rate, //
       @JsonProperty("numberOfClients") int clientCount) {
 
+    rate = initialDelay != null ? rate.offsetStart(initialDelay.toMillis()) : rate;
+
     metric = new Metric(name);
     List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < clientCount; i++) {
-      threads.add(new ClientThread(name, i, operation, metric, initialDelay, rate));
+      threads.add(new ClientThread(name, i, operation, metric, rate));
     }
     this.threads = Collections.unmodifiableList(threads);
   }
