@@ -16,7 +16,7 @@
     <version>11</version>
   </parent>
 
-  <groupId>org.sonatype.nexus</groupId>
+  <groupId>io.takari.nexus</groupId>
   <artifactId>nexus-perf</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
