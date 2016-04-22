@@ -37,7 +37,7 @@ timestamp=$(date '+%Y%m%d-%H%M%S')
 
 mkdir logs
 
-java -cp target/nexus-perftest-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
+java -cp target/nexus-perf-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
    -Dnexus.baseurl=$NEXUS_URL \
    -Dnexus.username=$NEXUS_USERNAME -Dnexus.password=$NEXUS_PASSWORD \
    -Dperftest.http.timeout=300000 \
