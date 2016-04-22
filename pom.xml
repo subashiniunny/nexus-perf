@@ -36,9 +36,11 @@
     <!-- Dependencies -->
     <nexusClient.version>2.13.0-01</nexusClient.version>
     <jackson.version>2.7.3</jackson.version>
+    <slf4j.version>1.7.21</slf4j.version>
   </properties>
 
   <dependencies>
+    <!-- Nexus clients -->
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-client-core</artifactId>
@@ -57,10 +59,35 @@
       <version>${nexusClient.version}</version>
     </dependency>
 
+    <!-- Perf stuff -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>4.5.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -103,12 +130,6 @@
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
       <version>${jackson.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.codehaus.woodstox</groupId>
-      <artifactId>woodstox-core-asl</artifactId>
-      <version>4.4.1</version>
     </dependency>
   </dependencies>
 
