@@ -11,9 +11,9 @@ scenario=$1
 buildid=$2
 baselineid=$3
 
-NEXUS_URL=http://localhost:8081/nexus
-NEXUS_USERNAME=admin
-NEXUS_PASSWORD=admin123
+nexusUrl=${NEXUS_URL:-http://localhost:8081/nexus}
+nexusUsername=${NEXUS_USERNAME:-admin}
+nexusPassword=${NEXUS_PASSWORD:-admin123}
 
 # scenario is performance/stress test scenario to execute (json file in scenarios/)
 # buildid is fully qualified version of the nexus instance running at $NEXUS_URL,
@@ -32,10 +32,11 @@ if [ -n "$buildid" ]; then
     fi
 fi
 
-java -cp target/nexus-perftest-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
+java -cp target/*-jar-with-dependencies.jar \
    -Ddata.file="data/internal-deploy.csv.gz" -Ddata.format=csv
-   -Dnexus.baseurl=$NEXUS_URL \
-   -Dnexus.username=$NEXUS_USERNAME -Dnexus.password=$NEXUS_PASSWORD \
+   -Dnexus.baseurl=$nexusUrl \
+   -Dnexus.username=$nexusUsername \
+   -Dnexus.password=$nexusPassword \
    $extra_vmargs \
    com.sonatype.nexus.perftest.tests.PrimeNexusRepoMain \
    scenarios/$scenario.xml

@@ -27,6 +27,11 @@ do not record metrics in the db. Useful to test scenario itself
 
     ./runtest.sh sample-scenario - 2.4.0-09
 
+Environment variables:
+* NEXUS_URL - the URL where Nexus runs, if not set defaults to `http://localhost:8081/nexus`
+* NEXUS_USERNAME - the username to use, if not set defaults to `admin`
+* NEXUS_PASSWORD - the password to use, if not set defaults to `admin123`
+
 ### How it works
 
 Using the details in the scenario xml file, the program spins up request threads for nexus. During the scenario run,
