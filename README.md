@@ -12,6 +12,17 @@ A Sonatype Nexus quick & dirty performance regression and stress test library.
 
 ### Running
 
+Grab a tarball, grab the uber jar and let's run it!
+
+```
+  java -jar nexus-perf-1.0.0-jar-with-dependencies.jar DIRECTORY
+```
+
+Where DIRECTORY is a directory you got by untarring the data tarball.
+This build produces one, but you can produce many more if want.
+
+### Running from git repository
+
 To run test scenario and record performance metrics in db
 (obviously, use actual baseline version).
 

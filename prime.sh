@@ -7,36 +7,8 @@
 #
 
 
-scenario=$1
-buildid=$2
-baselineid=$3
-
-nexusUrl=${NEXUS_URL:-http://localhost:8081/nexus}
-nexusUsername=${NEXUS_USERNAME:-admin}
-nexusPassword=${NEXUS_PASSWORD:-admin123}
-
-# scenario is performance/stress test scenario to execute (json file in scenarios/)
-# buildid is fully qualified version of the nexus instance running at $NEXUS_URL,
-#         if provided enables recording of performance metris in the database
-#         special '-' value disables performance metrics recording
-# baselineid is baseline buildid, if provided, performance of this build will be
-#         asserted to be within tolerance range compared to the baseline.
-
-extra_vmargs=
-
-if [ -n "$buildid" ]; then
-    extra_vmargs="$extra_vmargs -Dperftest.buildId=$buildid"
-
-    if [ -n "$baselineid" ]; then
-        extra_vmargs="$extra_vmargs -Dperftest.baselineId=$baselineid"
-    fi
-fi
+scenario=${1:-src/standard-data}
 
 java -cp target/*-jar-with-dependencies.jar \
-   -Ddata.file="data/internal-deploy.csv.gz" -Ddata.format=csv
-   -Dnexus.baseurl=$nexusUrl \
-   -Dnexus.username=$nexusUsername \
-   -Dnexus.password=$nexusPassword \
-   $extra_vmargs \
    com.sonatype.nexus.perftest.tests.PrimeNexusRepoMain \
    scenarios/$scenario.xml
