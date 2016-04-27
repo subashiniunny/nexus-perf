@@ -36,6 +36,11 @@ public class PerformanceTestRunner
       System.out.printf("Scenario " + scenario + " found at " + scenarioFile);
       System.exit(1);
     }
+
+    perf.forEach((k, v) -> {
+      System.setProperty((String) k, (String) v);
+    });
+
     new PerformanceTestRunner().run(scenarioFile);
   }
 

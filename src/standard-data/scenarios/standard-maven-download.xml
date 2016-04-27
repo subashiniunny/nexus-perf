@@ -21,7 +21,6 @@
                 <paths>
                   <class>com.sonatype.nexus.perftest.maven.CsvLogParser</class>
                   <logfile>data/internal-deploy.csv.gz</logfile>
-                  <prefix>/content/groups/public/</prefix>
                 </paths>
             </operation>
         </swarm>
@@ -34,7 +33,7 @@
                 <repo>public</repo>
                 <paths>
                   <class>com.sonatype.nexus.perftest.maven.HttpdLogParser</class>
-                  <logfile>data/maven-3.1-build-artifact-access.log.gz</logfile>
+                  <logfile>data/maven-3.1.0-build-artifact-access.log.gz</logfile>
                   <prefix>/content/groups/public/</prefix>
                 </paths>
             </operation>
