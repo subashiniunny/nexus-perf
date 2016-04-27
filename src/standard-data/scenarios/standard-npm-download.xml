@@ -8,7 +8,7 @@
 
 -->
 <scenario>
-    <name>npm-download</name>
+    <name>standard-npm-download</name>
     <duration>15 MINUTES</duration>
     <swarms>
         <swarm>
