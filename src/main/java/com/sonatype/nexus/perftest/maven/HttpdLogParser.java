@@ -31,8 +31,12 @@ public class HttpdLogParser implements DownloadPaths {
 
   private final AtomicInteger nextIndex = new AtomicInteger(0);
 
+  public HttpdLogParser(File logfile) throws IOException {
+    this(logfile, PREFIX);
+  }
+
   @JsonCreator
-  public HttpdLogParser(@JsonProperty("logfile") File logfile) throws IOException {
+  public HttpdLogParser(@JsonProperty("logfile") File logfile, @JsonProperty(value = "prefix") String prefix) throws IOException {
     ArrayList<String> paths = new ArrayList<>();
     try (BufferedReader br =
         new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(logfile))))) {
@@ -47,8 +51,8 @@ public class HttpdLogParser implements DownloadPaths {
         String method = st.nextToken(); // "METHOD
         if ("GET".equals(method)) {
           String path = st.nextToken(); // path
-          if (path.startsWith(PREFIX)) {
-            paths.add(path.substring(PREFIX.length()));
+          if (path.startsWith(prefix)) {
+            paths.add(path.substring(prefix.length()));
           }
         }
       }
