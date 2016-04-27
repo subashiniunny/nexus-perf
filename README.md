@@ -10,18 +10,22 @@
 
 A Sonatype Nexus quick & dirty performance regression and stress test library.
 
-### Building
+### Running
 
-mvn clean install
+To run test scenario and record performance metrics in db
+(obviously, use actual baseline version).
 
-This creates an uber jar in target which contains all the needed dependencies.
+    ./runtest.sh sample-scenario 2.4.0-09
 
-For certain dependencies to be resolved and code to be buildable ( ie. nexus pro features ) you need access to the
-following Sonatype repository using your Sonatype Customer Credentials
+To run test scenario, record performance metrics and the db
+and compare performance to an earlier scenario run
 
-https://repository.sonatype.org/content/groups/private-nexus-dev/
+    ./runtest.sh sample-scenario 2.5.0-03 2.4.0-09
 
-See https://support.sonatype.com/entries/21582466-How-can-I-write-a-custom-staging-rule- for more info
+To run test scenario, compare performance to an earlier scenario run,
+do not record metrics in the db. Useful to test scenario itself
+
+    ./runtest.sh sample-scenario - 2.4.0-09
 
 ### How it works
 
@@ -50,20 +54,10 @@ CSV and standard NCSA log files ( tar/gzipped ) can be parsed to simulate actual
 
 Setting up Nexus is up to you! This library does not aim to help you with that.
 
-### Running
+### Building
 
-To run test scenario and record performance metrics in db
-(obviously, use actual baseline version).
+mvn clean install
 
-    ./runtest.sh sample-scenario 2.4.0-09
-
-To run test scenario, record performance metrics and the db
-and compare performance to an earlier scenario run
-
-    ./runtest.sh sample-scenario 2.5.0-03 2.4.0-09
-
-To run test scenario, compare performance to an earlier scenario run,
-do not record metrics in the db. Useful to test scenario itself
-
-    ./runtest.sh sample-scenario - 2.4.0-09
+This creates an uber jar in target which contains all the needed dependencies. Then packages up the uber-jar and
+the data/scenarios into tarballs.
 

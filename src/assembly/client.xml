@@ -16,6 +16,7 @@
         <fileSet>
             <directory>${project.basedir}</directory>
             <includes>
+                <include>README.md</include>
                 <include>prime.sh</include>
                 <include>runtest.sh</include>
             </includes>
