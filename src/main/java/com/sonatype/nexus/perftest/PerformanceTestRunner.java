@@ -38,7 +38,9 @@ public class PerformanceTestRunner
     }
 
     perf.forEach((k, v) -> {
-      System.setProperty((String) k, (String) v);
+      if (v != null && v.toString().trim().length() != 0) {
+        System.setProperty(k.toString(), v.toString());
+      }
     });
 
     new PerformanceTestRunner().run(scenarioFile);
