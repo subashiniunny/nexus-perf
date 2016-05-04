@@ -47,8 +47,9 @@ public class ClientSwarm {
   }
 
   @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.PROPERTY, property = "class")
-  public static interface Operation {
-    public void perform(ClientRequestInfo requestInfo) throws Exception;
+  public interface Operation
+  {
+    void perform(ClientRequestInfo requestInfo) throws Exception;
   }
 
   private static class ClientThread extends Thread implements ClientRequestInfo {

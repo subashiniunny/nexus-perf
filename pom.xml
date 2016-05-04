@@ -55,6 +55,12 @@
 
     <dependency>
       <groupId>org.sonatype.nexus.plugins</groupId>
+      <artifactId>nexus-npm-repository-client</artifactId>
+      <version>${nexusClient.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sonatype.nexus.plugins</groupId>
       <artifactId>nexus-groovyremote-client</artifactId>
       <version>${nexusClient.version}</version>
     </dependency>

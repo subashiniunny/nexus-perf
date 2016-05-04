@@ -14,11 +14,23 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+
 import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
 import com.sonatype.nexus.perftest.db.TestExecution;
 import com.sonatype.nexus.perftest.db.TestExecutions;
 
 public class PerformanceTest {
+
+  @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.PROPERTY, property = "class")
+  public interface NexusConfigurator
+  {
+    void prepare() throws Exception;
+
+    void cleanup() throws Exception;
+  }
 
   private static final String buildId = System.getProperty("perftest.buildId");
 
@@ -28,13 +40,24 @@ public class PerformanceTest {
 
   private final Duration duration;
 
+  private final Collection<NexusConfigurator> configurators;
+
   private final Collection<ClientSwarm> swarms;
 
   @JsonCreator
-  public PerformanceTest(@JsonProperty("name") String name, @JsonProperty("duration") Duration duration,
+  public PerformanceTest(
+      @JsonProperty("name") String name,
+      @JsonProperty("duration") Duration duration,
+      @JsonProperty("configurators") Collection<NexusConfigurator> configurators, //
       @JsonProperty("swarms") Collection<ClientSwarm> swarms) {
     this.name = name;
     this.duration = duration;
+    if (configurators != null) {
+      this.configurators = Collections.unmodifiableCollection(new ArrayList<>(configurators));
+    }
+    else {
+      this.configurators = Collections.emptyList();
+    }
     this.swarms = Collections.unmodifiableCollection(new ArrayList<>(swarms));
   }
 
@@ -44,6 +67,15 @@ public class PerformanceTest {
       baseline = TestExecutions.select(name, baselineId);
       if (baseline == null) {
         throw new RuntimeException(String.format("Baseline build %s is not found", baselineId));
+      }
+    }
+
+    for (NexusConfigurator configurator : configurators) {
+      try {
+        configurator.prepare();
+      }
+      catch (Exception e) {
+        e.printStackTrace();
       }
     }
 
@@ -65,6 +97,15 @@ public class PerformanceTest {
     progressTickThread.join();
     progressTickThread.printTick();
     System.err.println("Stopped");
+
+    for (NexusConfigurator configurator: configurators) {
+      try {
+        configurator.cleanup();
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
 
     assertPerformance(metrics, baseline);
   }
