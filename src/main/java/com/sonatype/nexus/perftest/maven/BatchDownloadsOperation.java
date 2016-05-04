@@ -22,7 +22,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
  */
 public class BatchDownloadsOperation extends AbstractNexusOperation implements Operation {
 
-  private final String repoBaseurl;
+  private final String repo;
 
   private final DownloadPaths paths;
 
@@ -30,7 +30,7 @@ public class BatchDownloadsOperation extends AbstractNexusOperation implements O
   public BatchDownloadsOperation(@JacksonInject Nexus nexus, @JsonProperty("repo") String repo,
       @JsonProperty("paths") HttpdLogParser paths) {
     super(nexus);
-    this.repoBaseurl = getRepoBaseurl(repo);
+    this.repo = repo;
     this.paths = paths;
   }
 
@@ -39,6 +39,7 @@ public class BatchDownloadsOperation extends AbstractNexusOperation implements O
     // parse contents of httd log, download artifacts in the log, check sha1,
     // fail if any is not available or checksum fails
 
+    final String repoBaseurl = getRepoBaseurl(repo);
     DefaultHttpClient httpClient = getHttpClient();
 
     for (String path : paths.getAll()) {

@@ -11,6 +11,9 @@ import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmGroupRepositoryFactory;
+import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmHostedRepositoryFactory;
+import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmProxyRepositoryFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -101,6 +104,9 @@ public abstract class AbstractNexusOperation {
     repositoryFactories.add(new JerseyMavenHostedRepositoryFactory());
     repositoryFactories.add(new JerseyMavenGroupRepositoryFactory());
     repositoryFactories.add(new JerseyMavenProxyRepositoryFactory());
+    repositoryFactories.add(new JerseyNpmHostedRepositoryFactory());
+    repositoryFactories.add(new JerseyNpmGroupRepositoryFactory());
+    repositoryFactories.add(new JerseyNpmProxyRepositoryFactory());
     return new JerseyRepositoriesFactory(repositoryFactories);
   }
 
