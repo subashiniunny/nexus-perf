@@ -66,7 +66,10 @@ public class HttpdLogParser
 
   @Override
   public String getNext() {
-    return paths.get(nextIndex.getAndIncrement() % paths.size());
+    if (paths != null && paths.size() > 0){
+      return paths.get(nextIndex.getAndIncrement() % paths.size());
+    }
+    return null;
   }
 
   @Override
