@@ -14,7 +14,7 @@ import com.sonatype.nexus.perftest.Nexus;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpClient;
 
 /**
  * Simulates repository requests performed during a maven build. List of artifacts requested by the build comes from
@@ -40,7 +40,7 @@ public class BatchDownloadsOperation extends AbstractNexusOperation implements O
     // fail if any is not available or checksum fails
 
     final String repoBaseurl = getRepoBaseurl(repo);
-    DefaultHttpClient httpClient = getHttpClient();
+    HttpClient httpClient = getHttpClient();
 
     for (String path : paths.getAll()) {
       if (path.endsWith(".jar") || path.endsWith(".pom")) {

@@ -73,7 +73,7 @@ public class DownloadAction {
     final Checksumer checksumer = new Checksumer(response.getEntity());
     checksumer.consumeEntity();
 
-    if(!url.contains(".meta/nexus-smartproxy-plugin/handshake/")){
+    if(!url.contains(".meta/nexus-smartproxy-plugin/handshake/") && !url.endsWith(".sha1")){
       final String sha1 = getUrlContents(url + ".sha1");
       if (sha1 != null) {
         if (!sha1.startsWith(checksumer.getSha1())) {

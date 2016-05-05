@@ -17,7 +17,16 @@ import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmProxyRepositoryFact
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -62,17 +71,25 @@ public abstract class AbstractNexusOperation {
     return nexusBaseurl.endsWith("/") ? nexusBaseurl : (nexusBaseurl + "/");
   }
 
-  protected DefaultHttpClient getHttpClient() {
+  protected HttpClient getHttpClient() {
     ClientRequestInfo info = ((ClientRequestInfo) Thread.currentThread());
 
-    DefaultHttpClient httpclient = info.getContextValue("httpclient");
+    HttpClient httpclient = info.getContextValue("httpclient");
     if (httpclient == null) {
-      HttpParams params = new BasicHttpParams();
-      HttpConnectionParams.setConnectionTimeout(params, HTTP_TIMEOUT);
-      HttpConnectionParams.setSoTimeout(params, HTTP_TIMEOUT);
-      httpclient = new DefaultHttpClient(params);
-      httpclient.getCredentialsProvider().setCredentials(AuthScope.ANY,
-          new UsernamePasswordCredentials(username, password));
+      CredentialsProvider credsProvider = new BasicCredentialsProvider();
+      credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+      PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
+      poolingHttpClientConnectionManager.setDefaultMaxPerRoute(500);
+      poolingHttpClientConnectionManager.setMaxTotal(500);
+
+      httpclient = HttpClients.custom()
+          .setConnectionManager(poolingHttpClientConnectionManager)
+          .setDefaultRequestConfig(
+              RequestConfig.custom()
+                  .setConnectionRequestTimeout(HTTP_TIMEOUT)
+                  .setSocketTimeout(HTTP_TIMEOUT).build()
+          )
+          .setDefaultCredentialsProvider(credsProvider).build();
       info.setContextValue("httpclient", httpclient);
     }
     return httpclient;

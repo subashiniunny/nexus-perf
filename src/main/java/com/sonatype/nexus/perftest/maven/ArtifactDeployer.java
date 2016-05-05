@@ -12,11 +12,11 @@ import java.io.StringWriter;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import com.sonatype.nexus.perftest.Digests;
@@ -29,11 +29,11 @@ import de.pdark.decentxml.XMLWriter;
  * Helper to deploy artifacts to a maven2 repository.
  */
 public class ArtifactDeployer {
-  private final DefaultHttpClient httpclient;
+  private final HttpClient httpclient;
 
   private final String repoUrl;
 
-  public ArtifactDeployer(DefaultHttpClient httpclient, String repoUrl) {
+  public ArtifactDeployer(HttpClient httpclient, String repoUrl) {
     this.httpclient = httpclient;
     this.repoUrl = repoUrl.endsWith("/") ? repoUrl : (repoUrl + "/");
   }

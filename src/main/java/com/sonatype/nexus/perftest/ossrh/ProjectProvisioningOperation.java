@@ -9,8 +9,8 @@ package com.sonatype.nexus.perftest.ossrh;
 import java.io.IOException;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import com.sonatype.nexus.perftest.AbstractNexusOperation;
@@ -26,7 +26,7 @@ public class ProjectProvisioningOperation extends AbstractNexusOperation impleme
 
   @Override
   public void perform(ClientRequestInfo requestInfo) throws Exception {
-    DefaultHttpClient httpclient = getHttpClient();
+    HttpClient httpclient = getHttpClient();
 
     StringBuilder url = new StringBuilder(nexusBaseurl);
     if (!nexusBaseurl.endsWith("/")) {
