@@ -25,11 +25,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
  */
 public class ClientSwarm {
 
-  private final List<Thread> threads;
+  private final List<ClientThread> threads;
 
   private final Metric metric;
 
-  public static interface ClientRequestInfo {
+  public interface ClientRequestInfo {
     String getSwarmName();
 
     int getClientId();
@@ -82,7 +82,8 @@ public class ClientSwarm {
         requestId++;
         try {
           sleep(rate.nextDelayMillis());
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
           break;
         }
 
@@ -92,17 +93,21 @@ public class ClientSwarm {
         try {
           operation.perform(this);
           success = true;
-        } catch (InterruptedException | InterruptedIOException e) {
+        }
+        catch (InterruptedException | InterruptedIOException e) {
           // TODO more graceful shutdown
           break;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           failureMessage = e.getMessage();
 
           e.printStackTrace();
-        } finally {
+        }
+        finally {
           if (success) {
             context.success();
-          } else {
+          }
+          else {
             context.failure(failureMessage);
           }
         }
@@ -152,7 +157,7 @@ public class ClientSwarm {
     rate = initialDelay != null ? rate.offsetStart(initialDelay.toMillis()) : rate;
 
     metric = new Metric(name);
-    List<Thread> threads = new ArrayList<>();
+    List<ClientThread> threads = new ArrayList<>();
     for (int i = 0; i < clientCount; i++) {
       threads.add(new ClientThread(name, i, operation, metric, rate));
     }
@@ -166,7 +171,7 @@ public class ClientSwarm {
   }
 
   public void stop() throws InterruptedException {
-    for (Thread thread : threads) {
+    for (ClientThread thread : threads) {
       for (int i = 0; i < 3 && thread.isAlive(); i++) {
         thread.interrupt();
         thread.join(1000L);
