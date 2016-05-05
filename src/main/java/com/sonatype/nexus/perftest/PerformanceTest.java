@@ -27,8 +27,6 @@ public class PerformanceTest {
   @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.PROPERTY, property = "class")
   public interface NexusConfigurator
   {
-    void prepare() throws Exception;
-
     void cleanup() throws Exception;
   }
 
@@ -67,15 +65,6 @@ public class PerformanceTest {
       baseline = TestExecutions.select(name, baselineId);
       if (baseline == null) {
         throw new RuntimeException(String.format("Baseline build %s is not found", baselineId));
-      }
-    }
-
-    for (NexusConfigurator configurator : configurators) {
-      try {
-        configurator.prepare();
-      }
-      catch (Exception e) {
-        e.printStackTrace();
       }
     }
 

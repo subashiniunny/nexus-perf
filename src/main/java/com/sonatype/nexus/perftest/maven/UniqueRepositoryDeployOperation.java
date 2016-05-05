@@ -32,6 +32,8 @@ public class UniqueRepositoryDeployOperation extends AbstractNexusOperation impl
 
   private final boolean disableIndexing;
 
+  private final Repositories repositories;
+
   @JsonCreator
   public UniqueRepositoryDeployOperation(@JacksonInject Nexus nexus, @JsonProperty("artifactsBasedir") File basedir,
       @JsonProperty("pomTemplate") File pomTemplate, @JsonProperty("deleteRepository") boolean deleteRepository,
@@ -41,13 +43,13 @@ public class UniqueRepositoryDeployOperation extends AbstractNexusOperation impl
     this.pomTemplate = pomTemplate;
     this.deleteRepository = deleteRepository;
     this.disableIndexing = disableIndexing;
+    this.repositories = getNexusClient(newRepositoryFactories()).getSubsystem(Repositories.class);
   }
 
   @Override
   public void perform(ClientRequestInfo requestInfo) throws Exception {
     final String repoId =
         String.format("%d.%d.%d", requestInfo.getClientId(), requestInfo.getRequestId(), System.currentTimeMillis());
-    final Repositories repositories = getNexusClient(newRepositoryFactories()).getSubsystem(Repositories.class);
     MavenHostedRepository repository = repositories.create(MavenHostedRepository.class, repoId);
     if (disableIndexing) {
       repository.excludeFromSearchResults();

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -65,7 +66,7 @@ public class ClientSwarm {
 
     private int requestId;
 
-    private final HashMap<String, Object> context = new HashMap<>();
+    private final Map<String, Object> context = new HashMap<>();
 
     public ClientThread(String swarmName, int clientId, Operation operation, Metric metric, RequestRate rate) {
       super(String.format("%s-%d", swarmName, clientId));

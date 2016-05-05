@@ -99,7 +99,6 @@ public abstract class AbstractNexusOperation {
     return response.getStatusLine().getStatusCode() >= 200 && response.getStatusLine().getStatusCode() <= 299;
   }
 
-  @SuppressWarnings("unchecked")
   protected NexusClient getNexusClient(final SubsystemFactory<?, JerseyNexusClient>... subsystemFactories) {
     if (nexusBaseurl == null) {
       throw new IllegalStateException();
@@ -115,7 +114,6 @@ public abstract class AbstractNexusOperation {
     return new JerseyNexusClientFactory(subsystemFactories).createFor(connectionInfo);
   }
 
-  @SuppressWarnings("rawtypes")
   protected JerseyRepositoriesFactory newRepositoryFactories() {
     Set<RepositoryFactory> repositoryFactories = new HashSet<>();
     repositoryFactories.add(new JerseyMavenHostedRepositoryFactory());
@@ -127,7 +125,6 @@ public abstract class AbstractNexusOperation {
     return new JerseyRepositoriesFactory(repositoryFactories);
   }
 
-  @SuppressWarnings("unchecked")
   protected String getRepoBaseurl(String repoid) {
     return getNexusClient(newRepositoryFactories()).getSubsystem(Repositories.class).get(repoid).contentUri();
   }

@@ -18,20 +18,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Downloads series of artifacts from a maven2 repository.
  */
 public class DownloadOperation extends AbstractNexusOperation implements Operation {
-  private final String repo;
 
   private final DownloadPaths paths;
+
+  private final String repoBaseUrl;
 
   public DownloadOperation(@JacksonInject Nexus nexus, @JsonProperty("repo") String repo,
       @JsonProperty("paths") DownloadPaths paths ) {
     super(nexus);
-    this.repo = repo;
     this.paths = paths;
+    this.repoBaseUrl = getRepoBaseurl(repo);
   }
 
   @Override
   public void perform(ClientRequestInfo requestInfo) throws Exception {
-    final String repoBaseUrl = getRepoBaseurl(repo);
     new DownloadAction(getHttpClient(), repoBaseUrl).download(paths.getNext());
   }
 }
