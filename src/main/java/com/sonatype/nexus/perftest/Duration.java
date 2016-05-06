@@ -11,7 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
-public class Duration {
+public class Duration
+{
   private final long value;
 
   private final TimeUnit unit;

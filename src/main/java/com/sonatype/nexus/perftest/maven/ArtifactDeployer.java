@@ -10,6 +10,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 
+import com.sonatype.nexus.perftest.Digests;
+
+import de.pdark.decentxml.Document;
+import de.pdark.decentxml.XMLParser;
+import de.pdark.decentxml.XMLWriter;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -19,16 +24,11 @@ import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 
-import com.sonatype.nexus.perftest.Digests;
-
-import de.pdark.decentxml.Document;
-import de.pdark.decentxml.XMLParser;
-import de.pdark.decentxml.XMLWriter;
-
 /**
  * Helper to deploy artifacts to a maven2 repository.
  */
-public class ArtifactDeployer {
+public class ArtifactDeployer
+{
   private final HttpClient httpclient;
 
   private final String repoUrl;
@@ -66,14 +66,16 @@ public class ArtifactDeployer {
   }
 
   private void deploy(HttpEntity entity, String groupId, String artifactId, String version, String extension)
-      throws IOException {
+      throws IOException
+  {
     deploy0(entity, groupId, artifactId, version, extension);
     deploy0(getDigest(entity, "sha1"), groupId, artifactId, version, extension + ".sha1");
     deploy0(getDigest(entity, "md5"), groupId, artifactId, version, extension + ".md5");
   }
 
   private void deploy0(HttpEntity entity, String groupId, String artifactId, String version, String extension)
-      throws IOException {
+      throws IOException
+  {
     StringBuilder path = new StringBuilder();
 
     path.append(groupId.replace('.', '/')).append('/');
@@ -90,10 +92,12 @@ public class ArtifactDeployer {
 
       try {
         EntityUtils.consume(response.getEntity());
-      } finally {
+      }
+      finally {
         httpPut.releaseConnection();
       }
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new IOException("IOException executing " + httpPut.toString(), e);
     }
 

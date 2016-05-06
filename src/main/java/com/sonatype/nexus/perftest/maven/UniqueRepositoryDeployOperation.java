@@ -8,21 +8,25 @@ package com.sonatype.nexus.perftest.maven;
 
 import java.io.File;
 
+import com.sonatype.nexus.perftest.AbstractNexusOperation;
+import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
+import com.sonatype.nexus.perftest.ClientSwarm.Operation;
+import com.sonatype.nexus.perftest.Nexus;
+
 import org.sonatype.nexus.client.core.subsystem.repository.Repositories;
 import org.sonatype.nexus.client.core.subsystem.repository.maven.MavenHostedRepository;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sonatype.nexus.perftest.AbstractNexusOperation;
-import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
-import com.sonatype.nexus.perftest.ClientSwarm.Operation;
-import com.sonatype.nexus.perftest.Nexus;
 
 /**
  * Creates new repository, then deploys set of artifacts to the repository.
  */
-public class UniqueRepositoryDeployOperation extends AbstractNexusOperation implements Operation {
+public class UniqueRepositoryDeployOperation
+    extends AbstractNexusOperation
+    implements Operation
+{
 
   private final File basedir;
 
@@ -35,9 +39,12 @@ public class UniqueRepositoryDeployOperation extends AbstractNexusOperation impl
   private final Repositories repositories;
 
   @JsonCreator
-  public UniqueRepositoryDeployOperation(@JacksonInject Nexus nexus, @JsonProperty("artifactsBasedir") File basedir,
-      @JsonProperty("pomTemplate") File pomTemplate, @JsonProperty("deleteRepository") boolean deleteRepository,
-      @JsonProperty("disableIndexing") boolean disableIndexing) {
+  public UniqueRepositoryDeployOperation(@JacksonInject Nexus nexus,
+                                         @JsonProperty("artifactsBasedir") File basedir,
+                                         @JsonProperty("pomTemplate") File pomTemplate,
+                                         @JsonProperty("deleteRepository") boolean deleteRepository,
+                                         @JsonProperty("disableIndexing") boolean disableIndexing)
+  {
     super(nexus);
     this.basedir = basedir;
     this.pomTemplate = pomTemplate;

@@ -9,22 +9,24 @@ package com.sonatype.nexus.perftest.maven;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import com.sonatype.nexus.perftest.Digests;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 
-import com.sonatype.nexus.perftest.Digests;
-
 /**
  * Downloads specified artifact, verifies checksum, throws IOException if downloads fails or checksum is invalid
  */
-public class DownloadAction {
+public class DownloadAction
+{
 
   private final String baseUrl;
 
-  private static class Checksumer {
+  private static class Checksumer
+  {
     private final HttpEntity entity;
 
     private String sha1;
@@ -66,7 +68,7 @@ public class DownloadAction {
     final Checksumer checksumer = new Checksumer(response.getEntity());
     checksumer.consumeEntity();
 
-    if(!url.contains(".meta/nexus-smartproxy-plugin/handshake/") && !url.endsWith(".sha1")){
+    if (!url.contains(".meta/nexus-smartproxy-plugin/handshake/") && !url.endsWith(".sha1")) {
       final String sha1 = getUrlContents(httpClient, url + ".sha1");
       if (sha1 != null) {
         if (!sha1.startsWith(checksumer.getSha1())) {

@@ -9,7 +9,8 @@ package com.sonatype.nexus.perftest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Nexus {
+public class Nexus
+{
   private final String baseurl;
 
   private final String username;
@@ -24,7 +25,8 @@ public class Nexus {
 
   @JsonCreator
   public Nexus(@JsonProperty("baseurl") String baseurl, @JsonProperty("username") String username,
-      @JsonProperty("password") String password) {
+               @JsonProperty("password") String password)
+  {
     this.baseurl = baseurl;
     this.username = username;
     this.password = password;

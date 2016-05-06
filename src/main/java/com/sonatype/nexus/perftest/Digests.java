@@ -13,7 +13,8 @@ import java.security.NoSuchAlgorithmException;
 
 import org.apache.http.HttpEntity;
 
-public class Digests {
+public class Digests
+{
   public static String getDigest(HttpEntity entity, String algorithm) throws IOException {
     try (InputStream is = entity.getContent()) {
       byte[] buffer = new byte[1024];
@@ -28,10 +29,12 @@ public class Digests {
         if (numRead > 0) {
           md.update(buffer, 0, numRead);
         }
-      } while (numRead != -1);
+      }
+      while (numRead != -1);
 
       return new String(encodeHex(md.digest()));
-    } catch (NoSuchAlgorithmException e) {
+    }
+    catch (NoSuchAlgorithmException e) {
       throw new IOException(e);
     }
   }

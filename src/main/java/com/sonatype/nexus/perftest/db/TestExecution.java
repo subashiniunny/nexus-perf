@@ -11,13 +11,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  * Performance metrics of a one execution of one test.
  */
-public class TestExecution {
+public class TestExecution
+{
   private final String testId;
+
   private final String executionId;
+
   private final Map<String, Double> metrics = new HashMap<>();
 
   public TestExecution(String testId, String executionId) {

@@ -11,10 +11,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, defaultImpl = HttpdLogParser.class, include = JsonTypeInfo.As.PROPERTY, property = "class")
 @JsonSubTypes({
-    @JsonSubTypes.Type(value=HttpdLogParser.class, name="httpd"),
-    @JsonSubTypes.Type(value=CsvLogParser.class, name="csv")
+    @JsonSubTypes.Type(value = HttpdLogParser.class, name = "httpd"),
+    @JsonSubTypes.Type(value = CsvLogParser.class, name = "csv")
 })
-public interface DownloadPaths {
+public interface DownloadPaths
+{
   /**
    * Returns next path to download. Each call returns new path, but will eventually "wrap" and start path sequence from
    * the beginning. Can be called from multiple threads; each thread gets next path the same path sequence, in other

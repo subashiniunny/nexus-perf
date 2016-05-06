@@ -17,12 +17,14 @@ import java.util.Collection;
 
 import org.junit.Assert;
 
-public class TestExecutions {
+public class TestExecutions
+{
 
   static {
     try {
       Class.forName("org.h2.Driver");
-    } catch (ClassNotFoundException e) {
+    }
+    catch (ClassNotFoundException e) {
       // this is going to be fun to debug
       throw new LinkageError("Could not load required class", e);
     }
@@ -42,7 +44,7 @@ public class TestExecutions {
 
   private static boolean delete(Connection conn, TestExecution execution) throws SQLException {
     try (PreparedStatement statement =
-        conn.prepareStatement("DELETE FROM executions WHERE test_id = ? AND execution_id = ?")) {
+             conn.prepareStatement("DELETE FROM executions WHERE test_id = ? AND execution_id = ?")) {
       statement.setString(1, execution.getTestId());
       statement.setString(2, execution.getExecutionId());
       return statement.executeUpdate() > 0;
@@ -51,7 +53,8 @@ public class TestExecutions {
 
   private static void insert(Connection conn, TestExecution execution) throws SQLException {
     try (PreparedStatement statement =
-        conn.prepareStatement("INSERT INTO executions (test_id, execution_id, metric_id, value) VALUES (?, ?, ?, ?)")) {
+             conn.prepareStatement(
+                 "INSERT INTO executions (test_id, execution_id, metric_id, value) VALUES (?, ?, ?, ?)")) {
       for (String metricId : execution.getMetricIds()) {
         statement.setString(1, execution.getTestId());
         statement.setString(2, execution.getExecutionId());
@@ -64,7 +67,7 @@ public class TestExecutions {
 
   private static TestExecution select(Connection conn, String testId, String executionId) throws SQLException {
     try (PreparedStatement statement =
-        conn.prepareStatement("SELECT metric_id, value FROM executions WHERE test_id = ? AND execution_id = ?")) {
+             conn.prepareStatement("SELECT metric_id, value FROM executions WHERE test_id = ? AND execution_id = ?")) {
       statement.setString(1, testId);
       statement.setString(2, executionId);
       try (ResultSet resultSet = statement.executeQuery()) {
@@ -100,7 +103,8 @@ public class TestExecutions {
   public static void assertUnique(String testId, String executionId) {
     try (Connection conn = getConnection()) {
       Assert.assertNull(select(conn, testId, executionId));
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
@@ -108,7 +112,8 @@ public class TestExecutions {
   public static TestExecution select(String testId, String executionId) {
     try (Connection conn = getConnection()) {
       return select(conn, testId, executionId);
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
@@ -117,13 +122,15 @@ public class TestExecutions {
     try (Connection conn = getConnection()) {
       delete(conn, execution); // uniqueness is enforced at test level
       insert(conn, execution);
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
 
   public static void assertPerformance(Collection<PerformanceMetricDescriptor> metrics, TestExecution baseline,
-      TestExecution actual) {
+                                       TestExecution actual)
+  {
     ArrayList<String> errors = new ArrayList<>();
     for (PerformanceMetricDescriptor metric : metrics) {
       String error = metric.assertPerformance(baseline, actual);

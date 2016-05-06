@@ -12,17 +12,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
+import com.sonatype.nexus.perftest.db.TestExecution;
+import com.sonatype.nexus.perftest.db.TestExecutions;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
-import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
-import com.sonatype.nexus.perftest.db.TestExecution;
-import com.sonatype.nexus.perftest.db.TestExecutions;
-
-public class PerformanceTest {
+public class PerformanceTest
+{
 
   @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.PROPERTY, property = "class")
   public interface NexusConfigurator
@@ -47,7 +48,8 @@ public class PerformanceTest {
       @JsonProperty("name") String name,
       @JsonProperty("duration") Duration duration,
       @JsonProperty("configurators") Collection<NexusConfigurator> configurators, //
-      @JsonProperty("swarms") Collection<ClientSwarm> swarms) {
+      @JsonProperty("swarms") Collection<ClientSwarm> swarms)
+  {
     this.name = name;
     this.duration = duration;
     if (configurators != null) {
@@ -87,7 +89,7 @@ public class PerformanceTest {
     progressTickThread.printTick();
     System.err.println("Stopped");
 
-    for (NexusConfigurator configurator: configurators) {
+    for (NexusConfigurator configurator : configurators) {
       try {
         configurator.cleanup();
       }

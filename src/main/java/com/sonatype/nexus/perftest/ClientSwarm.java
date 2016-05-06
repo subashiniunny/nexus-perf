@@ -24,13 +24,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
  * Models a group of similar clients. The clients performs the same operation. Request rate is
  * configured for the swarm.
  */
-public class ClientSwarm {
+public class ClientSwarm
+{
 
   private final List<ClientThread> threads;
 
   private final Metric metric;
 
-  public interface ClientRequestInfo {
+  public interface ClientRequestInfo
+  {
     String getSwarmName();
 
     int getClientId();
@@ -53,7 +55,10 @@ public class ClientSwarm {
     void perform(ClientRequestInfo requestInfo) throws Exception;
   }
 
-  private static class ClientThread extends Thread implements ClientRequestInfo {
+  private static class ClientThread
+      extends Thread
+      implements ClientRequestInfo
+  {
     private final String swarmName;
 
     private final int clientId;
@@ -149,11 +154,12 @@ public class ClientSwarm {
 
   @JsonCreator
   public ClientSwarm( //
-      @JsonProperty("name") String name, //
-      @JsonProperty("operation") Operation operation, //
-      @JsonProperty(value = "initialDelay", required = false) Duration initialDelay, //
-      @JsonProperty("rate") RequestRate rate, //
-      @JsonProperty("numberOfClients") int clientCount) {
+                      @JsonProperty("name") String name, //
+                      @JsonProperty("operation") Operation operation, //
+                      @JsonProperty(value = "initialDelay", required = false) Duration initialDelay, //
+                      @JsonProperty("rate") RequestRate rate, //
+                      @JsonProperty("numberOfClients") int clientCount)
+  {
 
     rate = initialDelay != null ? rate.offsetStart(initialDelay.toMillis()) : rate;
 

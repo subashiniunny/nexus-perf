@@ -17,7 +17,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 /**
  * Schedules test client requests according to specified rate.
  */
-public class RequestRate {
+public class RequestRate
+{
   private final Random rnd = new Random(1);
 
   private final long startTimeMillis;

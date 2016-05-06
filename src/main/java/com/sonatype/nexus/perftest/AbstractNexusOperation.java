@@ -11,18 +11,8 @@ import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmGroupRepositoryFactory;
-import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmHostedRepositoryFactory;
-import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmProxyRepositoryFactory;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
+
 import org.sonatype.nexus.client.core.NexusClient;
 import org.sonatype.nexus.client.core.spi.SubsystemFactory;
 import org.sonatype.nexus.client.core.spi.subsystem.repository.RepositoryFactory;
@@ -38,9 +28,21 @@ import org.sonatype.nexus.client.rest.jersey.JerseyNexusClient;
 import org.sonatype.nexus.client.rest.jersey.JerseyNexusClientFactory;
 import org.sonatype.nexus.client.rest.jersey.subsystem.JerseyRepositoriesFactory;
 
-import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
+import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmGroupRepositoryFactory;
+import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmHostedRepositoryFactory;
+import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmProxyRepositoryFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
-public abstract class AbstractNexusOperation {
+public abstract class AbstractNexusOperation
+{
 
   public static final int HTTP_TIMEOUT = Integer.parseInt(System.getProperty("perftest.http.timeout", "60000"));
 
@@ -97,7 +99,8 @@ public abstract class AbstractNexusOperation {
     BaseUrl baseUrl;
     try {
       baseUrl = BaseUrl.baseUrlFrom(this.nexusBaseurl);
-    } catch (MalformedURLException e) {
+    }
+    catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
     AuthenticationInfo authenticationInfo = new UsernamePasswordAuthenticationInfo(this.username, this.password);

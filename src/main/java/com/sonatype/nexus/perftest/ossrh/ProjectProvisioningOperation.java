@@ -8,17 +8,20 @@ package com.sonatype.nexus.perftest.ossrh;
 
 import java.io.IOException;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.util.EntityUtils;
-
 import com.sonatype.nexus.perftest.AbstractNexusOperation;
 import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
 import com.sonatype.nexus.perftest.ClientSwarm.Operation;
 import com.sonatype.nexus.perftest.Nexus;
 
-public class ProjectProvisioningOperation extends AbstractNexusOperation implements Operation {
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.util.EntityUtils;
+
+public class ProjectProvisioningOperation
+    extends AbstractNexusOperation
+    implements Operation
+{
 
   public ProjectProvisioningOperation(Nexus nexus) {
     super(nexus);

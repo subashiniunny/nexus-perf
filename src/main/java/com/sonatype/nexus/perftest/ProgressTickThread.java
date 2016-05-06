@@ -13,7 +13,9 @@ import java.util.Date;
 /**
  * Prints test execution progress to STDOUT
  */
-public class ProgressTickThread extends Thread {
+public class ProgressTickThread
+    extends Thread
+{
   private static final DateFormat DF = new SimpleDateFormat("YYYY-MM-dd hh:mm:ss");
 
   private final Metric[] metrics;
@@ -49,7 +51,8 @@ public class ProgressTickThread extends Thread {
     try {
       sleep(5000L);
       return true;
-    } catch (InterruptedException e) {
+    }
+    catch (InterruptedException e) {
       return false;
     }
   }

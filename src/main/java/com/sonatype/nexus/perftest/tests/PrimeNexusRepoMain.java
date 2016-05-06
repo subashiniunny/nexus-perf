@@ -19,7 +19,8 @@ import com.sonatype.nexus.perftest.maven.DownloadOperation;
 import com.sonatype.nexus.perftest.maven.DownloadPaths;
 import com.sonatype.nexus.perftest.maven.HttpdLogParser;
 
-public class PrimeNexusRepoMain {
+public class PrimeNexusRepoMain
+{
 
   public static final int DOWNLOAD_TCOUNT = 20;
 

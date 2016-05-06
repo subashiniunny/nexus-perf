@@ -19,7 +19,8 @@ import com.sonatype.nexus.perftest.maven.BatchDownloadsOperation;
 import com.sonatype.nexus.perftest.maven.HttpdLogParser;
 import com.sonatype.nexus.perftest.maven.UniqueRepositoryDeployOperation;
 
-public class SFOriginalScenarioTest {
+public class SFOriginalScenarioTest
+{
 
   public final static int DOWNLOAD_TCOUNT = 1000;
 
@@ -51,7 +52,7 @@ public class SFOriginalScenarioTest {
     provisioners.start();
     deployers.start();
 
-    final Metric[] metrics = new Metric[] {provisionMetric, deployMetric};
+    final Metric[] metrics = new Metric[]{provisionMetric, deployMetric};
     new ProgressTickThread(metrics);
     Thread.sleep(TimeUnit.MINUTES.toMillis(10));
 

@@ -20,7 +20,10 @@ import org.apache.http.client.HttpClient;
  * Simulates repository requests performed during a maven build. List of artifacts requested by the build comes from
  * httpd/jetty access log file
  */
-public class BatchDownloadsOperation extends AbstractNexusOperation implements Operation {
+public class BatchDownloadsOperation
+    extends AbstractNexusOperation
+    implements Operation
+{
 
   private final String repoBaseUrl;
 
@@ -28,7 +31,8 @@ public class BatchDownloadsOperation extends AbstractNexusOperation implements O
 
   @JsonCreator
   public BatchDownloadsOperation(@JacksonInject Nexus nexus, @JsonProperty("repo") String repo,
-      @JsonProperty("paths") HttpdLogParser paths) {
+                                 @JsonProperty("paths") HttpdLogParser paths)
+  {
     super(nexus);
     this.paths = paths;
     this.repoBaseUrl = getRepoBaseurl(repo);
