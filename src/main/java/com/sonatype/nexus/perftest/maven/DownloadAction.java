@@ -22,8 +22,6 @@ import com.sonatype.nexus.perftest.Digests;
  */
 public class DownloadAction {
 
-  private final HttpClient httpClient;
-
   private final String baseUrl;
 
   private static class Checksumer {
@@ -44,19 +42,14 @@ public class DownloadAction {
     }
   }
 
-  public DownloadAction(HttpClient httpClient, String baseUrl) {
-    this.httpClient = httpClient;
+  public DownloadAction(String baseUrl) {
     this.baseUrl = baseUrl;
   }
 
 
-  public void download(String path) throws IOException {
-
-
+  public void download(HttpClient httpClient, String path) throws IOException {
     final String url = baseUrl.endsWith("/") ? baseUrl + path : baseUrl + "/" + path;
-
     final HttpGet httpGet = new HttpGet(url);
-
     final HttpResponse response = httpClient.execute(httpGet);
 
     if (!isSuccess(response)) {
@@ -74,7 +67,7 @@ public class DownloadAction {
     checksumer.consumeEntity();
 
     if(!url.contains(".meta/nexus-smartproxy-plugin/handshake/") && !url.endsWith(".sha1")){
-      final String sha1 = getUrlContents(url + ".sha1");
+      final String sha1 = getUrlContents(httpClient, url + ".sha1");
       if (sha1 != null) {
         if (!sha1.startsWith(checksumer.getSha1())) {
           throw new IOException("Wrong SHA1 " + url);
@@ -88,16 +81,13 @@ public class DownloadAction {
     return response.getStatusLine().getStatusCode() >= 200 && response.getStatusLine().getStatusCode() <= 299;
   }
 
-  private String getUrlContents(String url) throws IOException {
+  private String getUrlContents(HttpClient httpClient, String url) throws IOException {
     final HttpGet httpGet = new HttpGet(url);
-
-    HttpResponse response = httpClient.execute(httpGet);
-
+    final HttpResponse response = httpClient.execute(httpGet);
     if (!isSuccess(response)) {
       EntityUtils.consume(response.getEntity());
       return null;
     }
-
     return EntityUtils.toString(response.getEntity(), (Charset) null);
   }
 

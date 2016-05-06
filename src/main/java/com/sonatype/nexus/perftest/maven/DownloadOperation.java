@@ -21,17 +21,17 @@ public class DownloadOperation extends AbstractNexusOperation implements Operati
 
   private final DownloadPaths paths;
 
-  private final String repoBaseUrl;
+  private final DownloadAction downloadAction;
 
   public DownloadOperation(@JacksonInject Nexus nexus, @JsonProperty("repo") String repo,
       @JsonProperty("paths") DownloadPaths paths ) {
     super(nexus);
     this.paths = paths;
-    this.repoBaseUrl = getRepoBaseurl(repo);
+    this.downloadAction = new DownloadAction(getRepoBaseurl(repo));
   }
 
   @Override
   public void perform(ClientRequestInfo requestInfo) throws Exception {
-    new DownloadAction(getHttpClient(), repoBaseUrl).download(paths.getNext());
+    downloadAction.download(getHttpClient(), paths.getNext());
   }
 }

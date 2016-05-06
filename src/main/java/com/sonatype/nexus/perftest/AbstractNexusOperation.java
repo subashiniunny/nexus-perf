@@ -20,16 +20,9 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.ConnectionConfig;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.sonatype.nexus.client.core.NexusClient;
 import org.sonatype.nexus.client.core.spi.SubsystemFactory;
 import org.sonatype.nexus.client.core.spi.subsystem.repository.RepositoryFactory;
@@ -78,12 +71,10 @@ public abstract class AbstractNexusOperation {
     if (httpclient == null) {
       CredentialsProvider credsProvider = new BasicCredentialsProvider();
       credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
-      PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
-      poolingHttpClientConnectionManager.setDefaultMaxPerRoute(500);
-      poolingHttpClientConnectionManager.setMaxTotal(500);
+      BasicHttpClientConnectionManager clientConnectionManager = new BasicHttpClientConnectionManager();
 
       httpclient = HttpClients.custom()
-          .setConnectionManager(poolingHttpClientConnectionManager)
+          .setConnectionManager(clientConnectionManager)
           .setDefaultRequestConfig(
               RequestConfig.custom()
                   .setConnectionRequestTimeout(HTTP_TIMEOUT)

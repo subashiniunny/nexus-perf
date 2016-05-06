@@ -43,7 +43,7 @@ public class BatchDownloadsOperation extends AbstractNexusOperation implements O
 
     for (String path : paths.getAll()) {
       if (path.endsWith(".jar") || path.endsWith(".pom")) {
-        new DownloadAction(httpClient, repoBaseUrl).download(path);
+        new DownloadAction(repoBaseUrl).download(httpClient, path);
       }
     }
   }
