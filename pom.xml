@@ -172,19 +172,6 @@
               </archive>
             </configuration>
           </execution>
-          <!-- Create tarballs with data -->
-          <execution>
-            <id>standard-data</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/assembly/standard-data.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <plugin>
