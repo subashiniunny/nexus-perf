@@ -1,0 +1,209 @@
+<!--
+
+    Copyright (c) 2007-2013 Sonatype, Inc. All rights reserved.
+
+    This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+    which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.takari</groupId>
+    <artifactId>takari</artifactId>
+    <version>22</version>
+  </parent>
+
+  <groupId>io.takari.nexus</groupId>
+  <artifactId>nexus-perf</artifactId>
+  <version>1.0.3-SNAPSHOT</version>
+  <packaging>takari-jar</packaging>
+
+  <licenses>
+    <license>
+      <name>Eclipse Public License</name>
+      <url>http://www.eclipse.org/legal/epl-v10.html</url>
+    </license>
+  </licenses>
+
+  <properties>
+    <!-- Use Java8 and make IDEs like Idea understand it too -->
+    <takari.javaSourceVersion>1.8</takari.javaSourceVersion>
+    <maven.compiler.source>${takari.javaSourceVersion}</maven.compiler.source>
+    <maven.compiler.target>${takari.javaSourceVersion}</maven.compiler.target>
+
+    <!-- Dependencies -->
+    <nexusClient.version>2.13.0-01</nexusClient.version>
+    <jackson.version>2.7.3</jackson.version>
+    <slf4j.version>1.7.21</slf4j.version>
+  </properties>
+
+  <dependencies>
+    <!-- Nexus clients -->
+    <dependency>
+      <groupId>org.sonatype.nexus</groupId>
+      <artifactId>nexus-client-core</artifactId>
+      <version>${nexusClient.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sonatype.nexus.plugins</groupId>
+      <artifactId>nexus-capabilities-client</artifactId>
+      <version>${nexusClient.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sonatype.nexus.plugins</groupId>
+      <artifactId>nexus-npm-repository-client</artifactId>
+      <version>${nexusClient.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sonatype.nexus.plugins</groupId>
+      <artifactId>nexus-groovyremote-client</artifactId>
+      <version>${nexusClient.version}</version>
+    </dependency>
+
+    <!-- Perf stuff -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>4.4.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>de.pdark</groupId>
+      <artifactId>decentxml</artifactId>
+      <version>1.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.191</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+  </dependencies>
+
+  <prerequisites>
+    <maven>3.3.9</maven>
+  </prerequisites>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>client-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <tarLongFileMode>posix_warn</tarLongFileMode>
+              <archive>
+                <manifest>
+                  <mainClass>com.sonatype.nexus.perftest.PerformanceTestRunner</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+          </execution>
+          <!-- Create tarballs with data -->
+          <execution>
+            <id>standard-data</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/assembly/standard-data.xml</descriptor>
+              </descriptors>
+              <tarLongFileMode>posix_warn</tarLongFileMode>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.11</version>
+        <configuration>
+          <header>header-eplv1.txt</header>
+          <!-- fixed in parent v6 -->
+          <includes combine.children="append">
+            <include>**/*.sh</include>
+          </includes>
+          <properties>
+            <year>2013</year>
+          </properties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
