@@ -10,18 +10,47 @@
 <scenario>
     <name>standard-npm-download</name>
     <duration>15 MINUTES</duration>
+    <configurators>
+        <configurator>
+            <class>com.sonatype.nexus.perftest.config.CreateRepository</class>
+            <repo>npm-hosted</repo>
+            <format>npm</format>
+            <type>hosted</type>
+        </configurator>
+        <configurator>
+            <class>com.sonatype.nexus.perftest.config.CreateRepository</class>
+            <repo>npm-proxy</repo>
+            <format>npm</format>
+            <type>proxy</type>
+            <proxyOf>https://registry.npmjs.org/</proxyOf>
+        </configurator>
+        <configurator>
+            <class>com.sonatype.nexus.perftest.config.CreateRepository</class>
+            <repo>walmart-npme</repo>
+            <format>npm</format>
+            <type>proxy</type>
+            <proxyOf>https://npme.walmart.com/</proxyOf>
+        </configurator>
+        <configurator>
+            <class>com.sonatype.nexus.perftest.config.CreateRepository</class>
+            <repo>npm-all</repo>
+            <format>npm</format>
+            <type>group</type>
+            <members>npm-hosted,walmart-npme,npm-proxy</members>
+        </configurator>
+    </configurators>
     <swarms>
         <swarm>
-            <name>npm-3.8.8-build</name>
+            <name>npme-access-log-artifacts</name>
             <numberOfClients>250</numberOfClients>
             <rate>5/SECOND</rate>
             <operation>
                 <class>com.sonatype.nexus.perftest.maven.DownloadOperation</class>
                 <repo>npm-all</repo>
                 <paths>
-                    <class>com.sonatype.nexus.perftest.maven.HttpdLogParser</class>
-                    <logfile>data/npm-3.8.8-build-artifact-access.log.gz</logfile>
-                    <prefix>/nexus/content/groups/npm-all/</prefix>
+                    <class>com.sonatype.nexus.perftest.npm.NPMELogParser</class>
+                    <logfile>data/npme-nginx-access.log-20160504.gz</logfile>
+                    <prefix>/content/groups/npm-all/</prefix>
                 </paths>
             </operation>
         </swarm>
