@@ -59,13 +59,12 @@ public class DownloadAction
 
   public long download(HttpClient httpClient, String path) throws IOException {
     
-    String pref = "/nexus";
+    String pref = "/nexus/";
     if (path != null && path.startsWith(pref)){
       path = path.substring(pref.length());
     }
     
     final String url = baseUrl.endsWith("/") ? baseUrl + path : baseUrl + "/" + path;
-    //System.out.println("url="+url);
     final HttpGet httpGet = new HttpGet(url);
     final HttpResponse response = httpClient.execute(httpGet);
 
