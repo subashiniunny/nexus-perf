@@ -8,10 +8,12 @@ package com.sonatype.nexus.perftest.maven;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 
 import com.sonatype.nexus.perftest.Digests;
 
+import com.google.common.base.Charsets;
 import de.pdark.decentxml.Document;
 import de.pdark.decentxml.XMLParser;
 import de.pdark.decentxml.XMLWriter;
@@ -42,7 +44,7 @@ public class ArtifactDeployer
    * Deploys provided pom.xml file under specified groupId, artifactId and version. The contents of the pom is updated
    * to match specified groupId, artifactId and version.
    */
-  public void deployPom(String groupId, String artifactId, String version, File pomTemplate) throws IOException {
+  public long deployPom(String groupId, String artifactId, String version, File pomTemplate) throws IOException {
     final Document pom = XMLParser.parse(pomTemplate);
 
     pom.getRootElement().getChild("groupId").setText(groupId);
@@ -52,17 +54,20 @@ public class ArtifactDeployer
     StringWriter buf = new StringWriter();
     XMLWriter writer = new XMLWriter(buf);
     pom.toXML(writer);
-    HttpEntity pomEntity = new StringEntity(buf.toString(), ContentType.TEXT_XML);
+    String body = buf.toString();
+    HttpEntity pomEntity = new StringEntity(body, ContentType.TEXT_XML);
 
     deploy(pomEntity, groupId, artifactId, version, ".pom");
+    return body.getBytes(Charsets.UTF_8).length;
   }
 
   /**
    * Deploys provided file under specified groupId, artifactId and version with packaging=jar.
    */
-  public void deployJar(String groupId, String artifactId, String version, File jar) throws IOException {
+  public long deployJar(String groupId, String artifactId, String version, File jar) throws IOException {
     HttpEntity jarEntity = new FileEntity(jar, ContentType.DEFAULT_BINARY);
     deploy(jarEntity, groupId, artifactId, version, ".jar");
+    return jar.length();
   }
 
   private void deploy(HttpEntity entity, String groupId, String artifactId, String version, String extension)
@@ -107,6 +112,8 @@ public class ArtifactDeployer
   }
 
   public static StringEntity getDigest(HttpEntity entity, String algorithm) throws IOException {
-    return new StringEntity(Digests.getDigest(entity, algorithm), ContentType.TEXT_PLAIN);
+    try (InputStream inputStream = entity.getContent()) {
+      return new StringEntity(Digests.getDigest(inputStream, algorithm), ContentType.TEXT_PLAIN);
+    }
   }
 }

@@ -11,6 +11,7 @@ import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
 import com.sonatype.nexus.perftest.ClientSwarm.Operation;
 import com.sonatype.nexus.perftest.Nexus;
 
+import com.codahale.metrics.Meter;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,6 +37,8 @@ public class DownloadOperation
 
   @Override
   public void perform(ClientRequestInfo requestInfo) throws Exception {
-    downloadAction.download(getHttpClient(), paths.getNext());
+    Meter downloadedBytesMeter = requestInfo.getContextValue("metric.downloadedBytesMeter");
+    long downloaded = downloadAction.download(getHttpClient(), paths.getNext());
+    downloadedBytesMeter.mark(downloaded);
   }
 }

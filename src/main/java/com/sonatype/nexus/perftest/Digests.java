@@ -11,12 +11,10 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.apache.http.HttpEntity;
-
 public class Digests
 {
-  public static String getDigest(HttpEntity entity, String algorithm) throws IOException {
-    try (InputStream is = entity.getContent()) {
+  public static String getDigest(InputStream is, String algorithm) throws IOException {
+    try {
       byte[] buffer = new byte[1024];
 
       MessageDigest md = MessageDigest.getInstance(algorithm);

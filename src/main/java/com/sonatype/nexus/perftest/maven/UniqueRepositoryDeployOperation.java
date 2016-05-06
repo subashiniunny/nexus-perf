@@ -16,6 +16,7 @@ import com.sonatype.nexus.perftest.Nexus;
 import org.sonatype.nexus.client.core.subsystem.repository.Repositories;
 import org.sonatype.nexus.client.core.subsystem.repository.maven.MavenHostedRepository;
 
+import com.codahale.metrics.Meter;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -67,14 +68,17 @@ public class UniqueRepositoryDeployOperation
     final String groupId = "test.uniquerepodeploy"; // always the same groupId
     final String version = repoId;
 
+    Meter uploadedBytesMeter = requestInfo.getContextValue("metric.uploadedBytesMeter");
+    long uploaded = 0;
     int artifactNo = 0;
     for (File file : basedir.listFiles()) {
       if (file.getName().endsWith(".jar")) {
         final String artifactId = String.format("artifact-%d", artifactNo++);
-        deployer.deployPom(groupId, artifactId, version, pomTemplate);
-        deployer.deployJar(groupId, artifactId, version, file);
+        uploaded += deployer.deployPom(groupId, artifactId, version, pomTemplate);
+        uploaded += deployer.deployJar(groupId, artifactId, version, file);
       }
     }
+    uploadedBytesMeter.mark(uploaded);
 
     if (deleteRepository) {
       repository.remove().save();

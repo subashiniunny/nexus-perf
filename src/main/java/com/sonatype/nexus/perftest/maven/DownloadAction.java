@@ -7,10 +7,12 @@
 package com.sonatype.nexus.perftest.maven;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import com.sonatype.nexus.perftest.Digests;
 
+import com.google.common.io.CountingInputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -22,7 +24,6 @@ import org.apache.http.util.EntityUtils;
  */
 public class DownloadAction
 {
-
   private final String baseUrl;
 
   private static class Checksumer
@@ -31,17 +32,25 @@ public class DownloadAction
 
     private String sha1;
 
+    private long length;
+
     public Checksumer(HttpEntity entity) {
       this.entity = entity;
     }
 
     public void consumeEntity() throws IOException {
-      this.sha1 = Digests.getDigest(entity, "sha1");
+      try (InputStream inputStream = entity.getContent()) {
+        CountingInputStream cis = new CountingInputStream(inputStream);
+        this.sha1 = Digests.getDigest(cis, "sha1");
+        this.length = cis.getCount();
+      }
     }
 
     public String getSha1() {
       return sha1;
     }
+
+    public long getLength() { return length; }
   }
 
   public DownloadAction(String baseUrl) {
@@ -49,7 +58,7 @@ public class DownloadAction
   }
 
 
-  public void download(HttpClient httpClient, String path) throws IOException {
+  public long download(HttpClient httpClient, String path) throws IOException {
     final String url = baseUrl.endsWith("/") ? baseUrl + path : baseUrl + "/" + path;
     final HttpGet httpGet = new HttpGet(url);
     final HttpResponse response = httpClient.execute(httpGet);
@@ -61,7 +70,7 @@ public class DownloadAction
         throw new IOException(response.getStatusLine().toString());
       }
 
-      return;
+      return 0;
     }
 
     // consume entity entirely
@@ -76,7 +85,7 @@ public class DownloadAction
         }
       }
     }
-
+    return checksumer.getLength();
   }
 
   protected boolean isSuccess(HttpResponse response) {

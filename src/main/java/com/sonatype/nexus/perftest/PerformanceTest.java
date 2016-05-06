@@ -16,6 +16,8 @@ import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
 import com.sonatype.nexus.perftest.db.TestExecution;
 import com.sonatype.nexus.perftest.db.TestExecutions;
 
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -59,6 +61,7 @@ public class PerformanceTest
       this.configurators = Collections.emptyList();
     }
     this.swarms = Collections.unmodifiableCollection(new ArrayList<>(swarms));
+
   }
 
   public void run() throws InterruptedException {
@@ -72,6 +75,8 @@ public class PerformanceTest
 
     List<Metric> metrics = new ArrayList<>();
     for (ClientSwarm swarm : swarms) {
+      JmxReporter.forRegistry(SharedMetricRegistries.getOrCreate(swarm.getSwarmName()))
+          .inDomain(name + "." + swarm.getSwarmName()).build().start();
       metrics.add(swarm.getMetric());
       swarm.start();
     }
