@@ -21,7 +21,9 @@ import java.util.zip.GZIPInputStream;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class HttpdLogParser implements DownloadPaths {
+public class HttpdLogParser
+    implements DownloadPaths
+{
 
   private static final String PREFIX = "/content/groups/public/";
 
@@ -36,10 +38,12 @@ public class HttpdLogParser implements DownloadPaths {
   }
 
   @JsonCreator
-  public HttpdLogParser(@JsonProperty("logfile") File logfile, @JsonProperty(value = "prefix") String prefix) throws IOException {
+  public HttpdLogParser(@JsonProperty("logfile") File logfile, @JsonProperty(value = "prefix") String prefix)
+      throws IOException
+  {
     ArrayList<String> paths = new ArrayList<>();
     try (BufferedReader br =
-        new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(logfile))))) {
+             new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(logfile))))) {
       String str;
       while ((str = br.readLine()) != null) {
         StringTokenizer st = new StringTokenizer(str, "[]\" ");

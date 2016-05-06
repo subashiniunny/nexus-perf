@@ -8,21 +8,26 @@ package com.sonatype.nexus.perftest.maven;
 
 import java.io.File;
 
-import org.sonatype.nexus.client.core.subsystem.repository.Repositories;
-import org.sonatype.nexus.client.core.subsystem.repository.maven.MavenHostedRepository;
-
-import com.fasterxml.jackson.annotation.JacksonInject;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sonatype.nexus.perftest.AbstractNexusOperation;
 import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
 import com.sonatype.nexus.perftest.ClientSwarm.Operation;
 import com.sonatype.nexus.perftest.Nexus;
 
+import org.sonatype.nexus.client.core.subsystem.repository.Repositories;
+import org.sonatype.nexus.client.core.subsystem.repository.maven.MavenHostedRepository;
+
+import com.codahale.metrics.Meter;
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Creates new repository, then deploys set of artifacts to the repository.
  */
-public class UniqueRepositoryDeployOperation extends AbstractNexusOperation implements Operation {
+public class UniqueRepositoryDeployOperation
+    extends AbstractNexusOperation
+    implements Operation
+{
 
   private final File basedir;
 
@@ -32,22 +37,27 @@ public class UniqueRepositoryDeployOperation extends AbstractNexusOperation impl
 
   private final boolean disableIndexing;
 
+  private final Repositories repositories;
+
   @JsonCreator
-  public UniqueRepositoryDeployOperation(@JacksonInject Nexus nexus, @JsonProperty("artifactsBasedir") File basedir,
-      @JsonProperty("pomTemplate") File pomTemplate, @JsonProperty("deleteRepository") boolean deleteRepository,
-      @JsonProperty("disableIndexing") boolean disableIndexing) {
+  public UniqueRepositoryDeployOperation(@JacksonInject Nexus nexus,
+                                         @JsonProperty("artifactsBasedir") File basedir,
+                                         @JsonProperty("pomTemplate") File pomTemplate,
+                                         @JsonProperty("deleteRepository") boolean deleteRepository,
+                                         @JsonProperty("disableIndexing") boolean disableIndexing)
+  {
     super(nexus);
     this.basedir = basedir;
     this.pomTemplate = pomTemplate;
     this.deleteRepository = deleteRepository;
     this.disableIndexing = disableIndexing;
+    this.repositories = getNexusClient(newRepositoryFactories()).getSubsystem(Repositories.class);
   }
 
   @Override
   public void perform(ClientRequestInfo requestInfo) throws Exception {
     final String repoId =
         String.format("%d.%d.%d", requestInfo.getClientId(), requestInfo.getRequestId(), System.currentTimeMillis());
-    final Repositories repositories = getNexusClient(newRepositoryFactories()).getSubsystem(Repositories.class);
     MavenHostedRepository repository = repositories.create(MavenHostedRepository.class, repoId);
     if (disableIndexing) {
       repository.excludeFromSearchResults();
@@ -58,14 +68,17 @@ public class UniqueRepositoryDeployOperation extends AbstractNexusOperation impl
     final String groupId = "test.uniquerepodeploy"; // always the same groupId
     final String version = repoId;
 
+    Meter uploadedBytesMeter = requestInfo.getContextValue("metric.uploadedBytesMeter");
+    long uploaded = 0;
     int artifactNo = 0;
     for (File file : basedir.listFiles()) {
       if (file.getName().endsWith(".jar")) {
         final String artifactId = String.format("artifact-%d", artifactNo++);
-        deployer.deployPom(groupId, artifactId, version, pomTemplate);
-        deployer.deployJar(groupId, artifactId, version, file);
+        uploaded += deployer.deployPom(groupId, artifactId, version, pomTemplate);
+        uploaded += deployer.deployJar(groupId, artifactId, version, file);
       }
     }
+    uploadedBytesMeter.mark(uploaded);
 
     if (deleteRepository) {
       repository.remove().save();

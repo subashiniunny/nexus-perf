@@ -13,7 +13,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * Measures number of times and duration of successful execution of one test operation. Also measures number of times
  * the operation failed.
  */
-public class Metric {
+public class Metric
+{
   private final String name;
 
   private final AtomicInteger outstanding = new AtomicInteger();
@@ -24,7 +25,8 @@ public class Metric {
 
   private final AtomicInteger failures = new AtomicInteger();
 
-  public class Context {
+  public class Context
+  {
     final long start = System.currentTimeMillis();
 
     // counters are not updated atomically but that's okay

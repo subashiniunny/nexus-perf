@@ -6,8 +6,10 @@
  */
 package com.sonatype.nexus.perftest.db;
 
-public class PerformanceMetricDescriptor {
+public class PerformanceMetricDescriptor
+{
   private final String metricId;
+
   private final Tolerance tolerance;
 
   public PerformanceMetricDescriptor(String metricId, double lowerBand, double upperBand) {

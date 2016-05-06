@@ -8,7 +8,9 @@ package com.sonatype.nexus.perftest.db;
 
 import java.util.Collection;
 
-public class PerformanceAssertionFailure extends AssertionError {
+public class PerformanceAssertionFailure
+    extends AssertionError
+{
 
   private static final long serialVersionUID = -6209672222493199949L;
 
@@ -22,7 +24,7 @@ public class PerformanceAssertionFailure extends AssertionError {
     sb.append("test=").append(actual.getTestId());
     sb.append(" buildId=").append(actual.getExecutionId());
     sb.append(" baselineId=").append(baseline.getExecutionId());
-    
+
     for (String error : errors) {
       sb.append("\n   ").append(error);
     }

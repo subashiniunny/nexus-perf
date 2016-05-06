@@ -76,7 +76,7 @@ public class CreateRepository
                           @JsonProperty("proxyOf") String proxyOf,
                           @JsonProperty("members") String members,
                           @JsonProperty("deleteRepository") boolean deleteRepository,
-                          @JsonProperty("failIfExists") boolean failIfExists)
+                          @JsonProperty("failIfExists") boolean failIfExists) throws Exception
   {
     super(nexus);
     this.repo = repo;
@@ -88,10 +88,10 @@ public class CreateRepository
     this.failIfExists = failIfExists;
 
     this.repositories = getNexusClient(newRepositoryFactories()).getSubsystem(Repositories.class);
+    prepare();
   }
 
-  @Override
-  public void prepare() throws Exception {
+  private void prepare() throws Exception {
     try {
       repository = create();
       repository.save();

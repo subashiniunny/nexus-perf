@@ -14,24 +14,28 @@ import com.sonatype.nexus.perftest.Nexus;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpClient;
 
 /**
  * Simulates repository requests performed during a maven build. List of artifacts requested by the build comes from
  * httpd/jetty access log file
  */
-public class BatchDownloadsOperation extends AbstractNexusOperation implements Operation {
+public class BatchDownloadsOperation
+    extends AbstractNexusOperation
+    implements Operation
+{
 
-  private final String repo;
+  private final String repoBaseUrl;
 
   private final DownloadPaths paths;
 
   @JsonCreator
   public BatchDownloadsOperation(@JacksonInject Nexus nexus, @JsonProperty("repo") String repo,
-      @JsonProperty("paths") HttpdLogParser paths) {
+                                 @JsonProperty("paths") HttpdLogParser paths)
+  {
     super(nexus);
-    this.repo = repo;
     this.paths = paths;
+    this.repoBaseUrl = getRepoBaseurl(repo);
   }
 
   @Override
@@ -39,12 +43,11 @@ public class BatchDownloadsOperation extends AbstractNexusOperation implements O
     // parse contents of httd log, download artifacts in the log, check sha1,
     // fail if any is not available or checksum fails
 
-    final String repoBaseurl = getRepoBaseurl(repo);
-    DefaultHttpClient httpClient = getHttpClient();
+    HttpClient httpClient = getHttpClient();
 
     for (String path : paths.getAll()) {
       if (path.endsWith(".jar") || path.endsWith(".pom")) {
-        new DownloadAction(httpClient, repoBaseurl).download(path);
+        new DownloadAction(repoBaseUrl).download(httpClient, path);
       }
     }
   }

@@ -12,23 +12,24 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
+import com.sonatype.nexus.perftest.db.TestExecution;
+import com.sonatype.nexus.perftest.db.TestExecutions;
+
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
-import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
-import com.sonatype.nexus.perftest.db.TestExecution;
-import com.sonatype.nexus.perftest.db.TestExecutions;
-
-public class PerformanceTest {
+public class PerformanceTest
+{
 
   @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.PROPERTY, property = "class")
   public interface NexusConfigurator
   {
-    void prepare() throws Exception;
-
     void cleanup() throws Exception;
   }
 
@@ -49,7 +50,8 @@ public class PerformanceTest {
       @JsonProperty("name") String name,
       @JsonProperty("duration") Duration duration,
       @JsonProperty("configurators") Collection<NexusConfigurator> configurators, //
-      @JsonProperty("swarms") Collection<ClientSwarm> swarms) {
+      @JsonProperty("swarms") Collection<ClientSwarm> swarms)
+  {
     this.name = name;
     this.duration = duration;
     if (configurators != null) {
@@ -59,6 +61,7 @@ public class PerformanceTest {
       this.configurators = Collections.emptyList();
     }
     this.swarms = Collections.unmodifiableCollection(new ArrayList<>(swarms));
+
   }
 
   public void run() throws InterruptedException {
@@ -70,17 +73,10 @@ public class PerformanceTest {
       }
     }
 
-    for (NexusConfigurator configurator : configurators) {
-      try {
-        configurator.prepare();
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-
     List<Metric> metrics = new ArrayList<>();
     for (ClientSwarm swarm : swarms) {
+      JmxReporter.forRegistry(SharedMetricRegistries.getOrCreate(swarm.getSwarmName()))
+          .inDomain(name + "." + swarm.getSwarmName()).build().start();
       metrics.add(swarm.getMetric());
       swarm.start();
     }
@@ -98,7 +94,7 @@ public class PerformanceTest {
     progressTickThread.printTick();
     System.err.println("Stopped");
 
-    for (NexusConfigurator configurator: configurators) {
+    for (NexusConfigurator configurator : configurators) {
       try {
         configurator.cleanup();
       }

@@ -11,16 +11,8 @@ import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmGroupRepositoryFactory;
-import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmHostedRepositoryFactory;
-import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmProxyRepositoryFactory;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
+import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
+
 import org.sonatype.nexus.client.core.NexusClient;
 import org.sonatype.nexus.client.core.spi.SubsystemFactory;
 import org.sonatype.nexus.client.core.spi.subsystem.repository.RepositoryFactory;
@@ -36,9 +28,21 @@ import org.sonatype.nexus.client.rest.jersey.JerseyNexusClient;
 import org.sonatype.nexus.client.rest.jersey.JerseyNexusClientFactory;
 import org.sonatype.nexus.client.rest.jersey.subsystem.JerseyRepositoriesFactory;
 
-import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
+import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmGroupRepositoryFactory;
+import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmHostedRepositoryFactory;
+import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmProxyRepositoryFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
-public abstract class AbstractNexusOperation {
+public abstract class AbstractNexusOperation
+{
 
   public static final int HTTP_TIMEOUT = Integer.parseInt(System.getProperty("perftest.http.timeout", "60000"));
 
@@ -62,17 +66,23 @@ public abstract class AbstractNexusOperation {
     return nexusBaseurl.endsWith("/") ? nexusBaseurl : (nexusBaseurl + "/");
   }
 
-  protected DefaultHttpClient getHttpClient() {
+  protected HttpClient getHttpClient() {
     ClientRequestInfo info = ((ClientRequestInfo) Thread.currentThread());
 
-    DefaultHttpClient httpclient = info.getContextValue("httpclient");
+    HttpClient httpclient = info.getContextValue("httpclient");
     if (httpclient == null) {
-      HttpParams params = new BasicHttpParams();
-      HttpConnectionParams.setConnectionTimeout(params, HTTP_TIMEOUT);
-      HttpConnectionParams.setSoTimeout(params, HTTP_TIMEOUT);
-      httpclient = new DefaultHttpClient(params);
-      httpclient.getCredentialsProvider().setCredentials(AuthScope.ANY,
-          new UsernamePasswordCredentials(username, password));
+      CredentialsProvider credsProvider = new BasicCredentialsProvider();
+      credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+      BasicHttpClientConnectionManager clientConnectionManager = new BasicHttpClientConnectionManager();
+
+      httpclient = HttpClients.custom()
+          .setConnectionManager(clientConnectionManager)
+          .setDefaultRequestConfig(
+              RequestConfig.custom()
+                  .setConnectionRequestTimeout(HTTP_TIMEOUT)
+                  .setSocketTimeout(HTTP_TIMEOUT).build()
+          )
+          .setDefaultCredentialsProvider(credsProvider).build();
       info.setContextValue("httpclient", httpclient);
     }
     return httpclient;
@@ -82,7 +92,6 @@ public abstract class AbstractNexusOperation {
     return response.getStatusLine().getStatusCode() >= 200 && response.getStatusLine().getStatusCode() <= 299;
   }
 
-  @SuppressWarnings("unchecked")
   protected NexusClient getNexusClient(final SubsystemFactory<?, JerseyNexusClient>... subsystemFactories) {
     if (nexusBaseurl == null) {
       throw new IllegalStateException();
@@ -90,7 +99,8 @@ public abstract class AbstractNexusOperation {
     BaseUrl baseUrl;
     try {
       baseUrl = BaseUrl.baseUrlFrom(this.nexusBaseurl);
-    } catch (MalformedURLException e) {
+    }
+    catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
     AuthenticationInfo authenticationInfo = new UsernamePasswordAuthenticationInfo(this.username, this.password);
@@ -98,7 +108,6 @@ public abstract class AbstractNexusOperation {
     return new JerseyNexusClientFactory(subsystemFactories).createFor(connectionInfo);
   }
 
-  @SuppressWarnings("rawtypes")
   protected JerseyRepositoriesFactory newRepositoryFactories() {
     Set<RepositoryFactory> repositoryFactories = new HashSet<>();
     repositoryFactories.add(new JerseyMavenHostedRepositoryFactory());
@@ -110,7 +119,6 @@ public abstract class AbstractNexusOperation {
     return new JerseyRepositoriesFactory(repositoryFactories);
   }
 
-  @SuppressWarnings("unchecked")
   protected String getRepoBaseurl(String repoid) {
     return getNexusClient(newRepositoryFactories()).getSubsystem(Repositories.class).get(repoid).contentUri();
   }

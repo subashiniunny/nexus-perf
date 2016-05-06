@@ -12,24 +12,45 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricSet;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Models a group of similar clients. The clients performs the same operation. Request rate is
  * configured for the swarm.
  */
-public class ClientSwarm {
+public class ClientSwarm
+{
+  private final String swarmName;
 
-  private final List<Thread> threads;
+  private final List<ClientThread> threads;
 
   private final Metric metric;
 
-  public static interface ClientRequestInfo {
+  private final Meter requestsMeter;
+
+  private final Timer requestDurationTimer;
+
+  private final Meter successMeter;
+
+  private final Meter failureMeter;
+
+  private final Meter downloadedBytesMeter;
+
+  private final Meter uploadedBytesMeter;
+
+  public interface ClientRequestInfo
+  {
     String getSwarmName();
 
     int getClientId();
@@ -52,7 +73,10 @@ public class ClientSwarm {
     void perform(ClientRequestInfo requestInfo) throws Exception;
   }
 
-  private static class ClientThread extends Thread implements ClientRequestInfo {
+  private class ClientThread
+      extends Thread
+      implements ClientRequestInfo
+  {
     private final String swarmName;
 
     private final int clientId;
@@ -65,15 +89,17 @@ public class ClientSwarm {
 
     private int requestId;
 
-    private final HashMap<String, Object> context = new HashMap<>();
+    private final Map<String, Object> context = new HashMap<>();
 
-    public ClientThread(String swarmName, int clientId, Operation operation, Metric metric, RequestRate rate) {
+    public ClientThread(String swarmName, int clientId, Operation operation, Metric metric, RequestRate rate, Meter downloadedBytesMeter, Meter uploadedBytesMeter) {
       super(String.format("%s-%d", swarmName, clientId));
       this.swarmName = swarmName;
       this.clientId = clientId;
       this.operation = operation;
       this.metric = metric;
       this.rate = rate;
+      this.context.put("metric.downloadedBytesMeter", downloadedBytesMeter);
+      this.context.put("metric.uploadedBytesMeter", uploadedBytesMeter);
     }
 
     @Override
@@ -82,27 +108,37 @@ public class ClientSwarm {
         requestId++;
         try {
           sleep(rate.nextDelayMillis());
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
           break;
         }
 
+        requestsMeter.mark();
+        Timer.Context timerContext = requestDurationTimer.time();
         Metric.Context context = metric.time();
         boolean success = false;
         String failureMessage = null;
         try {
           operation.perform(this);
           success = true;
-        } catch (InterruptedException | InterruptedIOException e) {
+        }
+        catch (InterruptedException | InterruptedIOException e) {
           // TODO more graceful shutdown
           break;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           failureMessage = e.getMessage();
 
           e.printStackTrace();
-        } finally {
+        }
+        finally {
+          timerContext.stop();
           if (success) {
+            successMeter.mark();
             context.success();
-          } else {
+          }
+          else {
+            failureMeter.mark();
             context.failure(failureMessage);
           }
         }
@@ -143,18 +179,41 @@ public class ClientSwarm {
 
   @JsonCreator
   public ClientSwarm( //
-      @JsonProperty("name") String name, //
-      @JsonProperty("operation") Operation operation, //
-      @JsonProperty(value = "initialDelay", required = false) Duration initialDelay, //
-      @JsonProperty("rate") RequestRate rate, //
-      @JsonProperty("numberOfClients") int clientCount) {
+                      @JsonProperty("name") String name, //
+                      @JsonProperty("operation") Operation operation, //
+                      @JsonProperty(value = "initialDelay", required = false) Duration initialDelay, //
+                      @JsonProperty("rate") RequestRate rate, //
+                      @JsonProperty("numberOfClients") int clientCount)
+  {
+    this.requestsMeter = new Meter();
+    this.requestDurationTimer = new Timer();
+    this.successMeter = new Meter();
+    this.failureMeter = new Meter();
+    this.downloadedBytesMeter = new Meter();
+    this.uploadedBytesMeter = new Meter();
 
+    MetricSet metricSet = new MetricSet() {
+      @Override
+      public Map<String, com.codahale.metrics.Metric> getMetrics() {
+        return ImmutableMap.<String, com.codahale.metrics.Metric>builder()
+            .put("requests", requestsMeter)
+            .put("requestDuration", requestDurationTimer)
+            .put("success", successMeter)
+            .put("failure", failureMeter)
+            .put("downloadedBytes", downloadedBytesMeter)
+            .put("uploadedBytes", uploadedBytesMeter)
+            .build();
+      }
+    };
+    SharedMetricRegistries.getOrCreate(name).registerAll(metricSet);
+
+    swarmName = name;
     rate = initialDelay != null ? rate.offsetStart(initialDelay.toMillis()) : rate;
 
     metric = new Metric(name);
-    List<Thread> threads = new ArrayList<>();
+    List<ClientThread> threads = new ArrayList<>();
     for (int i = 0; i < clientCount; i++) {
-      threads.add(new ClientThread(name, i, operation, metric, rate));
+      threads.add(new ClientThread(name, i, operation, metric, rate, downloadedBytesMeter, uploadedBytesMeter));
     }
     this.threads = Collections.unmodifiableList(threads);
   }
@@ -166,7 +225,7 @@ public class ClientSwarm {
   }
 
   public void stop() throws InterruptedException {
-    for (Thread thread : threads) {
+    for (ClientThread thread : threads) {
       for (int i = 0; i < 3 && thread.isAlive(); i++) {
         thread.interrupt();
         thread.join(1000L);
@@ -179,6 +238,10 @@ public class ClientSwarm {
         System.err.println(sb.toString());
       }
     }
+  }
+
+  public String getSwarmName() {
+    return swarmName;
   }
 
   public Metric getMetric() {

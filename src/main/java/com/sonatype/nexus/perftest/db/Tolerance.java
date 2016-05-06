@@ -6,10 +6,12 @@
  */
 package com.sonatype.nexus.perftest.db;
 
-public class Tolerance {
+public class Tolerance
+{
   private static final double PRECISION = 0.001;
 
   private final double lowerBand;
+
   private final double upperBand;
 
   public Tolerance(double lowerBand, double upperBand) {

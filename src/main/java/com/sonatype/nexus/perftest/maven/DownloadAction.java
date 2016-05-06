@@ -7,59 +7,61 @@
 package com.sonatype.nexus.perftest.maven;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import com.sonatype.nexus.perftest.Digests;
+
+import com.google.common.io.CountingInputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 
-import com.sonatype.nexus.perftest.Digests;
-
 /**
  * Downloads specified artifact, verifies checksum, throws IOException if downloads fails or checksum is invalid
  */
-public class DownloadAction {
-
-  private final HttpClient httpClient;
-
+public class DownloadAction
+{
   private final String baseUrl;
 
-  private static class Checksumer {
+  private static class Checksumer
+  {
     private final HttpEntity entity;
 
     private String sha1;
+
+    private long length;
 
     public Checksumer(HttpEntity entity) {
       this.entity = entity;
     }
 
     public void consumeEntity() throws IOException {
-      this.sha1 = Digests.getDigest(entity, "sha1");
+      try (InputStream inputStream = entity.getContent()) {
+        CountingInputStream cis = new CountingInputStream(inputStream);
+        this.sha1 = Digests.getDigest(cis, "sha1");
+        this.length = cis.getCount();
+      }
     }
 
     public String getSha1() {
       return sha1;
     }
+
+    public long getLength() { return length; }
   }
 
-  public DownloadAction(HttpClient httpClient, String baseUrl) {
-    this.httpClient = httpClient;
+  public DownloadAction(String baseUrl) {
     this.baseUrl = baseUrl;
   }
 
 
-  public void download(String path) throws IOException {
-    
-    String pref = "/nexus/";
-    if (path != null && path.startsWith(pref)){
-      path = path.substring(pref.length());
-    }
-    
+  public long download(HttpClient httpClient, String path) throws IOException {
+
     final String url = baseUrl.endsWith("/") ? baseUrl + path : baseUrl + "/" + path;
     final HttpGet httpGet = new HttpGet(url);
-
     final HttpResponse response = httpClient.execute(httpGet);
 
     if (!isSuccess(response)) {
@@ -69,38 +71,35 @@ public class DownloadAction {
         throw new IOException(response.getStatusLine().toString());
       }
 
-      return;
+      return 0;
     }
 
     // consume entity entirely
     final Checksumer checksumer = new Checksumer(response.getEntity());
     checksumer.consumeEntity();
 
-    if(!url.contains(".meta/nexus-smartproxy-plugin/handshake/")){
-      final String sha1 = getUrlContents(url + ".sha1");
+    if (!url.contains(".meta/nexus-smartproxy-plugin/handshake/") && !url.endsWith(".sha1")) {
+      final String sha1 = getUrlContents(httpClient, url + ".sha1");
       if (sha1 != null) {
         if (!sha1.startsWith(checksumer.getSha1())) {
           throw new IOException("Wrong SHA1 " + url);
         }
       }
     }
-
+    return checksumer.getLength();
   }
 
   protected boolean isSuccess(HttpResponse response) {
     return response.getStatusLine().getStatusCode() >= 200 && response.getStatusLine().getStatusCode() <= 299;
   }
 
-  private String getUrlContents(String url) throws IOException {
+  private String getUrlContents(HttpClient httpClient, String url) throws IOException {
     final HttpGet httpGet = new HttpGet(url);
-
-    HttpResponse response = httpClient.execute(httpGet);
-
+    final HttpResponse response = httpClient.execute(httpGet);
     if (!isSuccess(response)) {
       EntityUtils.consume(response.getEntity());
       return null;
     }
-
     return EntityUtils.toString(response.getEntity(), (Charset) null);
   }
 

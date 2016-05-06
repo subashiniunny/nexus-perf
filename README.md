@@ -10,6 +10,8 @@
 
 A Sonatype Nexus quick & dirty performance regression and stress test library.
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.takari.nexus/nexus-perf/badge.svg?subject=io.takari.nexus:nexus-perf)](https://maven-badges.herokuapp.com/maven-central/io.takari.nexus/nexus-perf)
+
 ### Running
 
 Grab a tarball, grab the uber jar and let's run it!
@@ -20,6 +22,16 @@ Grab a tarball, grab the uber jar and let's run it!
 
 Where DIRECTORY is a directory you got by untarring the data tarball.
 This build produces one, but you can produce many more if want.
+
+To run it using JMX remote access enabled:
+
+```
+java -Dcom.sun.management.jmxremote.port=5000 \
+  -Dcom.sun.management.jmxremote.authenticate=false \
+  -Dcom.sun.management.jmxremote.ssl=false \
+  -jar nexus-perf-1.0.4-SNAPSHOT-jar-with-dependencies.jar \
+  maven01-1.0.0
+```
 
 ### Running from git repository
 
