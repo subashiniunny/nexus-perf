@@ -10,6 +10,8 @@
 
 A Sonatype Nexus quick & dirty performance regression and stress test library.
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.takari.nexus/nexus-perf/badge.svg?subject=io.takari.nexus:nexus-perf)](https://maven-badges.herokuapp.com/maven-central/io.takari.nexus/nexus-perf)
+
 ### Running
 
 Grab a tarball, grab the uber jar and let's run it!
