@@ -178,7 +178,6 @@
               <descriptorRefs>
                 <descriptorRef>jar-with-dependencies</descriptorRef>
               </descriptorRefs>
-              <tarLongFileMode>posix_warn</tarLongFileMode>
               <archive>
                 <manifest>
                   <mainClass>com.sonatype.nexus.perftest.PerformanceTestRunner</mainClass>
