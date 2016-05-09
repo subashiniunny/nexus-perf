@@ -124,12 +124,12 @@ public class ClientSwarm
         }
         catch (InterruptedException | InterruptedIOException e) {
           // TODO more graceful shutdown
+          printStackTrace(e);
           break;
         }
         catch (Exception e) {
           failureMessage = e.getMessage();
-
-          e.printStackTrace();
+          printStackTrace(e);
         }
         finally {
           timerContext.stop();
@@ -143,6 +143,10 @@ public class ClientSwarm
           }
         }
       }
+    }
+
+    private void printStackTrace(final Exception e) {
+      System.err.println(Thread.currentThread().getName() + " " + e.getMessage());
     }
 
     @Override
@@ -213,7 +217,9 @@ public class ClientSwarm
     metric = new Metric(name);
     List<ClientThread> threads = new ArrayList<>();
     for (int i = 0; i < clientCount; i++) {
-      threads.add(new ClientThread(name, i, operation, metric, rate, downloadedBytesMeter, uploadedBytesMeter));
+      ClientThread clientThread = new ClientThread(name, i, operation, metric, rate, downloadedBytesMeter, uploadedBytesMeter);
+      clientThread.setName(swarmName + i);
+      threads.add(clientThread);
     }
     this.threads = Collections.unmodifiableList(threads);
   }
