@@ -79,7 +79,7 @@ public abstract class AbstractNexusOperation
           .setConnectionManager(clientConnectionManager)
           .setDefaultRequestConfig(
               RequestConfig.custom()
-                  .setConnectionRequestTimeout(HTTP_TIMEOUT)
+                  .setConnectTimeout(HTTP_TIMEOUT)
                   .setSocketTimeout(HTTP_TIMEOUT).build()
           )
           .setDefaultCredentialsProvider(credsProvider).build();
