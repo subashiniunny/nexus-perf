@@ -32,6 +32,8 @@ public class RepositoryDeployOperation
 
   private final File pomTemplate;
 
+  private final String groupId;
+
   private final String repo;
 
   private final Repositories repositories;
@@ -40,11 +42,13 @@ public class RepositoryDeployOperation
   public RepositoryDeployOperation(@JacksonInject Nexus nexus,
                                    @JsonProperty("artifactsBasedir") File basedir,
                                    @JsonProperty("pomTemplate") File pomTemplate,
+                                   @JsonProperty(value = "groupId", required = false) String groupId,
                                    @JsonProperty("repo") String repo)
   {
     super(nexus);
     this.basedir = basedir;
     this.pomTemplate = pomTemplate;
+    this.groupId = groupId == null ? "test.group" : groupId;
     this.repo = repo;
     this.repositories = getNexusClient(newRepositoryFactories()).getSubsystem(Repositories.class);
   }
@@ -54,7 +58,6 @@ public class RepositoryDeployOperation
     MavenHostedRepository repository = repositories.get(MavenHostedRepository.class, repo);
 
     final ArtifactDeployer deployer = new ArtifactDeployer(getHttpClient(), repository.contentUri());
-    final String groupId = "test.uniquerepodeploy"; // always the same groupId
     final String version = requestInfo.getClientId() + "." + requestInfo.getRequestId();
 
     Meter uploadedBytesMeter = requestInfo.getContextValue("metric.uploadedBytesMeter");
