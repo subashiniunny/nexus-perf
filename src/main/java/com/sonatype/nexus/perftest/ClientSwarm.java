@@ -49,6 +49,8 @@ public class ClientSwarm
 
   private final Meter uploadedBytesMeter;
 
+  private final RequestRate rate;
+
   public interface ClientRequestInfo
   {
     String getSwarmName();
@@ -107,7 +109,7 @@ public class ClientSwarm
       while (true) {
         requestId++;
         try {
-          sleep(rate.nextDelayMillis());
+          rate.waitForWork();
         }
         catch (InterruptedException e) {
           break;
@@ -212,7 +214,7 @@ public class ClientSwarm
     SharedMetricRegistries.getOrCreate(name).registerAll(metricSet);
 
     swarmName = name;
-    rate = initialDelay != null ? rate.offsetStart(initialDelay.toMillis()) : rate;
+    this.rate = initialDelay != null ? rate.offsetStart(initialDelay.toMillis()) : rate;
 
     metric = new Metric(name);
     List<ClientThread> threads = new ArrayList<>();
@@ -252,6 +254,10 @@ public class ClientSwarm
 
   public Metric getMetric() {
     return metric;
+  }
+
+  public RequestRate getRate() {
+    return rate;
   }
 
   @Override

@@ -9,6 +9,7 @@ package com.sonatype.nexus.perftest;
 
 import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,7 +26,9 @@ public class RequestRate
 
   private final AtomicInteger count = new AtomicInteger();
 
-  private final int periodMillis;
+  private final Semaphore semaphore = new Semaphore(0);
+
+  private volatile int periodMillis;
 
   /**
    * @param rate average number of requests per time {@code unit}
@@ -43,6 +46,22 @@ public class RequestRate
     // TODO assert period is at least 10
     this.startTimeMillis = startTimeMillis;
     this.periodMillis = periodMillis;
+
+    // feeder
+    new Thread(
+        () -> {
+          try {
+            Thread.sleep(nextDelayMillis()); // obey offsetStart
+            while (true) {
+              Thread.sleep(this.periodMillis);
+              semaphore.release();
+            }
+          }
+          catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+    ).start();
   }
 
   @JsonCreator
@@ -50,7 +69,7 @@ public class RequestRate
     this(parsePeriod(value));
   }
 
-  private static int parsePeriod(String value) {
+  public static int parsePeriod(String value) {
     StringTokenizer st = new StringTokenizer(value, " /");
     int time = Integer.parseInt(st.nextToken());
     TimeUnit unit = TimeUnit.valueOf(st.nextToken() + "S");
@@ -71,8 +90,16 @@ public class RequestRate
     return Math.max(0, absoluteTimeMillis - System.currentTimeMillis());
   }
 
+  public void waitForWork() throws InterruptedException {
+    semaphore.acquire();
+  }
+
   public int getPeriodMillis() {
     return periodMillis;
+  }
+
+  public void setPeriodMillis(int pm) {
+    periodMillis = pm;
   }
 
   public RequestRate offsetStart(long millis) {
