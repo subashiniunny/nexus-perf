@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.management.StandardMBean;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * JMX endpoint for ClientSwarm.
  */
@@ -42,12 +44,28 @@ public class ClientSwarmMBeanImpl
 
   @Override
   public String getRatePeriod() {
-    int period = (int) TimeUnit.SECONDS.toMillis(1) / getRateSleepPeriod();
+    int period = ((int) TimeUnit.SECONDS.toMillis(1) / getRateSleepPeriod()) * getMultiplier();
     return period + "/" + TimeUnit.SECONDS.name();
   }
 
   @Override
   public void setRatePeriod(final String value) {
     setRateSleepPeriod(RequestRate.parsePeriod(value));
+  }
+
+  @Override
+  public int getToDoCount() { return clientSwarm.getRate().getToDoCount(); }
+
+  @Override
+  public int getWaitingCount() { return clientSwarm.getRate().getWaitingCount(); }
+
+  @Override
+  public int getMultiplier() {
+    return clientSwarm.getRate().getMultiplier();
+  }
+
+  @Override
+  public void setMultiplier(final int multiplier) {
+    clientSwarm.getRate().setMultiplier(multiplier);
   }
 }

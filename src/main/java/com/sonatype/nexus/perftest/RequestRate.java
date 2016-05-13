@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Schedules test client requests according to specified rate.
  */
@@ -22,13 +24,15 @@ public class RequestRate
 {
   private final Random rnd = new Random(1);
 
-  private final long startTimeMillis;
-
   private final AtomicInteger count = new AtomicInteger();
 
   private final Semaphore semaphore = new Semaphore(0);
 
+  private final long startTimeMillis;
+
   private volatile int periodMillis;
+
+  private volatile int multiplier = 1;
 
   /**
    * @param rate average number of requests per time {@code unit}
@@ -54,7 +58,7 @@ public class RequestRate
             Thread.sleep(nextDelayMillis()); // obey offsetStart
             while (true) {
               Thread.sleep(this.periodMillis);
-              semaphore.release();
+              semaphore.release(multiplier);
             }
           }
           catch (InterruptedException e) {
@@ -100,6 +104,7 @@ public class RequestRate
 
   public void setPeriodMillis(int pm) {
     periodMillis = pm;
+    semaphore.drainPermits();
   }
 
   public RequestRate offsetStart(long millis) {
@@ -108,5 +113,19 @@ public class RequestRate
 
   public long getStartTimeMillis() {
     return startTimeMillis;
+  }
+
+  public int getToDoCount() { return semaphore.availablePermits(); }
+
+  public int getWaitingCount() { return semaphore.getQueueLength(); }
+
+  public int getMultiplier() {
+    return multiplier;
+  }
+
+  public void setMultiplier(final int multiplier) {
+    checkArgument(multiplier > 0, "Must be greater than zero: %s", multiplier);
+    this.multiplier = multiplier;
+    semaphore.drainPermits();
   }
 }

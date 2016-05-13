@@ -21,4 +21,12 @@ public interface ClientSwarmMBean
   String getRatePeriod();
 
   void setRatePeriod(String value);
+
+  int getToDoCount();
+
+  int getWaitingCount();
+
+  int getMultiplier();
+
+  void setMultiplier(final int multiplier);
 }
