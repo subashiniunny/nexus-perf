@@ -33,24 +33,24 @@ public class ClientSwarmMBeanImpl
   }
 
   @Override
-  public int getRateSleepPeriod() {
+  public int getRateSleepMillis() {
     return clientSwarm.getRate().getPeriodMillis();
   }
 
   @Override
-  public void setRateSleepPeriod(final int sp) {
+  public void setRateSleepMillis(final int sp) {
     clientSwarm.getRate().setPeriodMillis(sp);
   }
 
   @Override
   public String getRatePeriod() {
-    int period = ((int) TimeUnit.SECONDS.toMillis(1) / getRateSleepPeriod()) * getMultiplier();
+    int period = ((int) TimeUnit.SECONDS.toMillis(1) / getRateSleepMillis()) * getRateMultiplier();
     return period + "/" + TimeUnit.SECONDS.name();
   }
 
   @Override
   public void setRatePeriod(final String value) {
-    setRateSleepPeriod(RequestRate.parsePeriod(value));
+    setRateSleepMillis(RequestRate.parsePeriod(value));
   }
 
   @Override
@@ -60,12 +60,12 @@ public class ClientSwarmMBeanImpl
   public int getWaitingCount() { return clientSwarm.getRate().getWaitingCount(); }
 
   @Override
-  public int getMultiplier() {
+  public int getRateMultiplier() {
     return clientSwarm.getRate().getMultiplier();
   }
 
   @Override
-  public void setMultiplier(final int multiplier) {
+  public void setRateMultiplier(final int multiplier) {
     clientSwarm.getRate().setMultiplier(multiplier);
   }
 }
