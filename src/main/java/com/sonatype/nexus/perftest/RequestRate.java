@@ -102,6 +102,10 @@ public class RequestRate
     return periodMillis;
   }
 
+  /**
+   * This method can be used only if clients are blocked using {@link #waitForWork()}. This method along with {@link
+   * #nextDelayMillis()} will not work as expected.
+   */
   public void setPeriodMillis(int pm) {
     periodMillis = pm;
     semaphore.drainPermits();
