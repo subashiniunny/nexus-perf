@@ -7,10 +7,14 @@
  */
 package com.sonatype.nexus.perftest;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
 import com.sonatype.nexus.perftest.db.TestExecution;
@@ -64,7 +68,7 @@ public class PerformanceTest
 
   }
 
-  public void run() throws InterruptedException {
+  public void run() throws Exception {
     TestExecution baseline = null;
     if (baselineId != null) {
       baseline = TestExecutions.select(name, baselineId);
@@ -73,11 +77,16 @@ public class PerformanceTest
       }
     }
 
+    MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+
     List<Metric> metrics = new ArrayList<>();
     for (ClientSwarm swarm : swarms) {
       JmxReporter.forRegistry(SharedMetricRegistries.getOrCreate(swarm.getSwarmName()))
           .inDomain(name + "." + swarm.getSwarmName()).build().start();
       metrics.add(swarm.getMetric());
+      ObjectName objectName = ObjectName.getInstance(getClass().getPackage().getName(), "name", swarm.getSwarmName());
+      server.registerMBean(new ClientSwarmMBeanImpl(swarm), objectName);
+
       swarm.start();
     }
 
