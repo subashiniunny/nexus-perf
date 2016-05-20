@@ -39,8 +39,7 @@ public class NPMELogParser implements DownloadPaths{
         new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(logfile))))) {
       String str;
       while ((str = br.readLine()) != null) {
-        //NPMELogMessage logMessage = new ObjectMapper().readValue(str,NPMELogMessage.class); 
-        //String message = logMessage.getMessage();
+        
         if (str != null && str.contains("\"GET ")){
           StringTokenizer st = new StringTokenizer(str, "[]\" ");
           st.nextToken(); // ip
@@ -51,11 +50,8 @@ public class NPMELogParser implements DownloadPaths{
           String method = st.nextToken(); // "METHOD
           if ("GET".equals(method)) {
             String path = st.nextToken(); // path
-            if (!path.contains("@walmart")) {
-              path = path.substring(2).replace("_attachments", "-");
-              //System.out.println("path after fix="+path);
-              paths.add(path);
-            }
+            path = path.substring(2).replace("_attachments", "-");
+            paths.add(path);
           }
         }
       }
