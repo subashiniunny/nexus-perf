@@ -33,6 +33,23 @@ java -Dcom.sun.management.jmxremote.port=5000 \
   maven01-1.0.0
 ```
 
+### Running in agent mode
+
+The library can be started in agent mode by specifying "remote" as 
+directory. Agent mode is only useful with JMX access enabled:
+
+```
+java -Dcom.sun.management.jmxremote.port=5000 \
+  -Dcom.sun.management.jmxremote.authenticate=false \
+  -Dcom.sun.management.jmxremote.ssl=false \
+  -jar nexus-perf-1.0.7-jar-with-dependencies.jar \
+  remote
+```
+
+When in agent mode, the library will wait for commands received via JMX
+operations. Available commands are to run a test, stop a running test or
+ exit the agent. 
+ 
 ### Running from git repository
 
 To run test scenario and record performance metrics in db
