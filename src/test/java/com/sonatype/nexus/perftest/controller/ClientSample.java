@@ -17,7 +17,7 @@ public class ClientSample
 {
   @Test
   public void sample() throws Exception {
-    ClientPool pool = new ClientPool(JMXServiceURLs.of(
+    AgentPool pool = new AgentPool(JMXServiceURLs.of(
         /*"192.168.1.6:5001",
         "192.168.1.7:5001",*/
         "localhost:5101",
@@ -49,23 +49,23 @@ public class ClientSample
     );
 
     try {
-      Collection<Client> m01Clients = pool.acquire(2);
-      Collection<Client> m02Clients = pool.acquire(1);
+      Collection<Agent> m01Agents = pool.acquire(2);
+      Collection<Agent> m02Agents = pool.acquire(1);
 
       Map<String, String> overrides = new HashMap<>();
       overrides.put("nexus.baseurl", "http://localhost:8081/nexus");
 
-      m01Clients.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
-      m02Clients.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
+      m01Agents.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
+      m02Agents.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
 
-      List<Swarm> m1Swarms = m01Clients.stream().map(Client::getSwarms).flatMap(Collection::stream)
+      List<Swarm> m1Swarms = m01Agents.stream().map(Agent::getSwarms).flatMap(Collection::stream)
           .collect(Collectors.toList());
       m1Swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
         control.setRateMultiplier(5);
         control.setRateSleepMillis(7);
       });
-      m01Clients.parallelStream().forEach(Client::waitToFinish);
-      m02Clients.parallelStream().forEach(Client::waitToFinish);
+      m01Agents.parallelStream().forEach(Agent::waitToFinish);
+      m02Agents.parallelStream().forEach(Agent::waitToFinish);
 
       m1Swarms.stream().forEach(swarm -> assertThat(swarm.get(Swarm.Success.count), is(greaterThan(100L))));
       assertThat(nexus.get(Nexus.Requests.count), is(greaterThan(500L)));

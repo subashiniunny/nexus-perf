@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Nexus
-    extends AttributeSource
+    extends Client
 {
   private static final Logger log = LoggerFactory.getLogger(Nexus.class);
 

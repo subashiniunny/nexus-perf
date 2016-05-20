@@ -21,10 +21,10 @@ public abstract class AttributeTrigger
 
   private ScheduledFuture<?> scheduledFuture;
 
-  private AttributeSource attributeSource;
+  private Client client;
 
-  public void bind(final AttributeSource attributeSource) {
-    this.attributeSource = checkNotNull(attributeSource);
+  public void bind(final Client client) {
+    this.client = checkNotNull(client);
     schedule();
   }
 
@@ -46,8 +46,8 @@ public abstract class AttributeTrigger
 
   protected abstract void check();
 
-  public AttributeSource getAttributeSource() {
-    return attributeSource;
+  public Client getClient() {
+    return client;
   }
 
   public Duration getGranularityPeriod() {
@@ -56,7 +56,7 @@ public abstract class AttributeTrigger
 
   public void setGranularityPeriod(final Duration granularityPeriod) {
     this.granularityPeriod = checkNotNull(granularityPeriod);
-    if (attributeSource != null) {
+    if (client != null) {
       schedule();
     }
   }

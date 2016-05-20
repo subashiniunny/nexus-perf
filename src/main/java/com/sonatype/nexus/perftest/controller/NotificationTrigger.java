@@ -24,9 +24,9 @@ public class NotificationTrigger
   }
 
   @Override
-  public void bind(final AttributeSource attributeSource) {
+  public void bind(final Client client) {
     try {
-      attributeSource.getConnection().addNotificationListener(
+      client.getConnection().addNotificationListener(
           objectName,
           (notification, handback) -> {
             ringTheAlarm(notification);

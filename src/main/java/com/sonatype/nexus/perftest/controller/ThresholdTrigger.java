@@ -23,7 +23,7 @@ public class ThresholdTrigger<T extends Comparable>
 
   @Override
   protected void check() {
-    T current = getAttributeSource().get(attribute);
+    T current = getClient().get(attribute);
 
     if (threshold != null && current != null) {
       if (current.compareTo(threshold) >= 0) {
