@@ -34,7 +34,7 @@ public class Nexus
 
   public static class QueuedThreadPool
   {
-    public static final Attribute<Long> activeThreads = new Attribute<>(
+    public static final Attribute<Integer> activeThreads = new Attribute<>(
         "\"org.eclipse.jetty.util.thread\":type=\"QueuedThreadPool\",name=\"active-threads\"", "Value"
     );
   }

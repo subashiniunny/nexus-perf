@@ -6,12 +6,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public abstract class MonitorCondition
-    implements Condition
+public abstract class AttributeTrigger
 {
-  private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+  private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
 
   private Duration granularityPeriod = Duration.ofSeconds(1);
 
@@ -19,11 +23,28 @@ public abstract class MonitorCondition
 
   private AttributeSource attributeSource;
 
-  @Override
   public void bind(final AttributeSource attributeSource) {
     this.attributeSource = checkNotNull(attributeSource);
     schedule();
   }
+
+  private void schedule() {
+    if (scheduledFuture != null) {
+      scheduledFuture.cancel(true);
+    }
+    scheduledFuture = scheduler.scheduleWithFixedDelay(
+        () -> {
+          try {
+            AttributeTrigger.this.check();
+          }
+          catch (Exception e) {
+            log.warn("Exception during execution of {}", this, e);
+          }
+        }, 0, granularityPeriod.toMillis(), TimeUnit.MILLISECONDS
+    );
+  }
+
+  protected abstract void check();
 
   public AttributeSource getAttributeSource() {
     return attributeSource;
@@ -39,17 +60,6 @@ public abstract class MonitorCondition
       schedule();
     }
   }
-
-  private void schedule() {
-    if (scheduledFuture != null) {
-      scheduledFuture.cancel(true);
-    }
-    scheduledFuture = scheduler.scheduleWithFixedDelay(
-        this::check, 0, granularityPeriod.toMillis(), TimeUnit.MILLISECONDS
-    );
-  }
-
-  protected abstract void check();
 
 }
 

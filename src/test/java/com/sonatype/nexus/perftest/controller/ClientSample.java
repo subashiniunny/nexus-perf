@@ -39,7 +39,7 @@ public class ClientSample
     //    null,
     //    null
     //);
-    nexus.addTrigger(new GaugeCondition<>(Nexus.QueuedThreadPool.activeThreads,
+    nexus.addTrigger(new ThresholdTrigger<>(Nexus.QueuedThreadPool.activeThreads,
         (condition, activeThreads) -> {
           System.out.println();
           System.out.println(
@@ -47,7 +47,7 @@ public class ClientSample
           );
           System.out.println();
           pool.releaseAll();
-        }).setHighThreshold(200L));
+        }).setThreshold(395));
 
 
     try {

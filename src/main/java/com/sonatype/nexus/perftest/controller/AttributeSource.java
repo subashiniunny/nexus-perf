@@ -18,7 +18,7 @@ public class AttributeSource
 
   private MBeanServerConnection connection;
 
-  private Collection<Condition> conditions = new ArrayList<>();
+  private Collection<Trigger> triggers = new ArrayList<>();
 
   public <T> T get(final Attribute<T> attribute) {
     return get(attribute.getName(), attribute.getAttribute());
@@ -33,8 +33,8 @@ public class AttributeSource
     }
   }
 
-  <T extends Condition> void addTrigger(final T condition) {
-    conditions.add(condition);
+  <T extends Trigger> void addTrigger(final T condition) {
+    triggers.add(condition);
     if (connection != null) {
       condition.bind(this);
     }
@@ -46,7 +46,7 @@ public class AttributeSource
 
   protected void setConnection(final MBeanServerConnection connection) {
     this.connection = checkNotNull(connection);
-    conditions.parallelStream().forEach(c -> c.bind(this));
+    triggers.parallelStream().forEach(c -> c.bind(this));
   }
 
 }

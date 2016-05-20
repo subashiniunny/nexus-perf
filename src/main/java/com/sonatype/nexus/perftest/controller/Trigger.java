@@ -2,7 +2,7 @@ package com.sonatype.nexus.perftest.controller;
 
 import javax.management.MBeanServerConnection;
 
-public interface Condition
+public interface Trigger
 {
 
   void bind(AttributeSource attributeSource);
