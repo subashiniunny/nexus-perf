@@ -26,29 +26,27 @@ public class ClientSample
     ));
 
     Nexus nexus = new Nexus(jmxServiceURL("localhost:1099"));
-    //nexus.getConnection().addNotificationListener(
-    //    new ObjectName("io.takari.nexus.healthcheck.jmx:name=JmxHealthCheckNotifierMBeanImpl"),
-    //    (notification, handback) -> {
-    //      System.out.println();
-    //      System.out.println(
-    //          "!!!!!!!!!!!!!!!!! Nexus is dead (" + notification.getType() + " " + notification.getMessage() + ")"
-    //      );
-    //      System.out.println();
-    //      pool.releaseAll();
-    //    },
-    //    null,
-    //    null
-    //);
-    nexus.addTrigger(new ThresholdTrigger<>(Nexus.QueuedThreadPool.activeThreads,
-        (condition, activeThreads) -> {
+    nexus.addTrigger(new QueuedThreadPoolUnhealthy(
+        (message) -> {
           System.out.println();
           System.out.println(
-              "!!!!!!!!!!!!!!!!! Nexus is dead (" + activeThreads + ")"
+              "!!!!!!!!!!!!!!!!! Nexus is dead (" + message + ")"
           );
           System.out.println();
           pool.releaseAll();
-        }).setThreshold(395));
-
+        }
+    ));
+    nexus.addTrigger(new ThresholdTrigger<>(
+            Nexus.QueuedThreadPool.activeThreads,
+            (trigger, activeThreads) -> {
+              System.out.println();
+              System.out.println(
+                  "!!!!!!!!!!!!!!!!! Nexus is dead (" + activeThreads + ")"
+              );
+              System.out.println();
+              pool.releaseAll();
+            }).setThreshold(395)
+    );
 
     try {
       Collection<Client> m01Clients = pool.acquire(2);
