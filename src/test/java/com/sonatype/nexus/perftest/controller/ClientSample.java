@@ -17,7 +17,7 @@ public class ClientSample
 {
   @Test
   public void sample() throws Exception {
-    ClientPool pool = new ClientPool(JMXServiceURLs.of(
+    AgentPool pool = new AgentPool(JMXServiceURLs.of(
         /*"192.168.1.6:5001",
         "192.168.1.7:5001",*/
         "localhost:5101",
@@ -26,48 +26,46 @@ public class ClientSample
     ));
 
     Nexus nexus = new Nexus(jmxServiceURL("localhost:1099"));
-    //nexus.getConnection().addNotificationListener(
-    //    new ObjectName("io.takari.nexus.healthcheck.jmx:name=JmxHealthCheckNotifierMBeanImpl"),
-    //    (notification, handback) -> {
-    //      System.out.println();
-    //      System.out.println(
-    //          "!!!!!!!!!!!!!!!!! Nexus is dead (" + notification.getType() + " " + notification.getMessage() + ")"
-    //      );
-    //      System.out.println();
-    //      pool.releaseAll();
-    //    },
-    //    null,
-    //    null
-    //);
-    nexus.addTrigger(new GaugeCondition<>(Nexus.QueuedThreadPool.activeThreads,
-        (condition, activeThreads) -> {
+    nexus.addTrigger(new QueuedThreadPoolUnhealthy(
+        (message) -> {
           System.out.println();
           System.out.println(
-              "!!!!!!!!!!!!!!!!! Nexus is dead (" + activeThreads + ")"
+              "!!!!!!!!!!!!!!!!! Nexus is dead (" + message + ")"
           );
           System.out.println();
           pool.releaseAll();
-        }).setHighThreshold(200L));
-
+        }
+    ));
+    nexus.addTrigger(new ThresholdTrigger<>(
+            Nexus.QueuedThreadPool.activeThreads,
+            (trigger, activeThreads) -> {
+              System.out.println();
+              System.out.println(
+                  "!!!!!!!!!!!!!!!!! Nexus is dead (" + activeThreads + ")"
+              );
+              System.out.println();
+              pool.releaseAll();
+            }).setThreshold(395)
+    );
 
     try {
-      Collection<Client> m01Clients = pool.acquire(2);
-      Collection<Client> m02Clients = pool.acquire(1);
+      Collection<Agent> m01Agents = pool.acquire(2);
+      Collection<Agent> m02Agents = pool.acquire(1);
 
       Map<String, String> overrides = new HashMap<>();
       overrides.put("nexus.baseurl", "http://localhost:8081/nexus");
 
-      m01Clients.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
-      m02Clients.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
+      m01Agents.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
+      m02Agents.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
 
-      List<Swarm> m1Swarms = m01Clients.stream().map(Client::getSwarms).flatMap(Collection::stream)
+      List<Swarm> m1Swarms = m01Agents.stream().map(Agent::getSwarms).flatMap(Collection::stream)
           .collect(Collectors.toList());
       m1Swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
         control.setRateMultiplier(5);
         control.setRateSleepMillis(7);
       });
-      m01Clients.parallelStream().forEach(Client::waitToFinish);
-      m02Clients.parallelStream().forEach(Client::waitToFinish);
+      m01Agents.parallelStream().forEach(Agent::waitToFinish);
+      m02Agents.parallelStream().forEach(Agent::waitToFinish);
 
       m1Swarms.stream().forEach(swarm -> assertThat(swarm.get(Swarm.Success.count), is(greaterThan(100L))));
       assertThat(nexus.get(Nexus.Requests.count), is(greaterThan(500L)));

@@ -7,7 +7,7 @@ import javax.management.ObjectName;
 import com.sonatype.nexus.perftest.ClientSwarmMBean;
 
 public class Swarm
-    extends AttributeSource
+    extends Client
 {
   private final ObjectName objectName;
 
