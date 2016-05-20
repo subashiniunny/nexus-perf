@@ -8,7 +8,9 @@ package com.sonatype.nexus.perftest;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Prints test execution progress to STDOUT
@@ -16,7 +18,7 @@ import java.util.Date;
 public class ProgressTickThread
     extends Thread
 {
-  private static final DateFormat DF = new SimpleDateFormat("YYYY-MM-dd hh:mm:ss");
+  private static final Logger log = LoggerFactory.getLogger(ProgressTickThread.class);
 
   private final Metric[] metrics;
 
@@ -25,7 +27,7 @@ public class ProgressTickThread
   public ProgressTickThread(Metric... metrics) {
     this.metrics = metrics;
     setDaemon(true);
-    start();
+    setName("progress");
   }
 
   @Override
@@ -36,15 +38,22 @@ public class ProgressTickThread
   }
 
   public void printTick() {
-    System.out.format(DF.format(new Date()));
-    System.out.format(" (%d)", (System.currentTimeMillis() - start) / 1000);
+    StringBuilder sb = new StringBuilder();
+    sb.append(String.format("(%d)", (System.currentTimeMillis() - start) / 1000));
     for (Metric metric : metrics) {
       int successes = metric.getSuccesses();
       long duration = successes > 0 ? metric.getSuccessDuration() / successes : 0;
-      System.out.format(" %s=%d/%d(~%d)/%d", metric.getName(), metric.getOutstanding(), successes, duration,
-          metric.getFailures());
+      sb.append(
+          String.format(" %s=%d/%d(~%d)/%d",
+              metric.getName(),
+              metric.getOutstanding(),
+              successes,
+              duration,
+              metric.getFailures()
+          )
+      );
     }
-    System.out.println();
+    log.info("{}", sb);
   }
 
   private boolean sleep() {

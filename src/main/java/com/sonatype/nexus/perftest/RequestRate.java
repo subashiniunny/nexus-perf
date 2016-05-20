@@ -62,7 +62,7 @@ public class RequestRate
             }
           }
           catch (InterruptedException e) {
-            e.printStackTrace();
+            // just bail out silently
           }
         }
     ).start();

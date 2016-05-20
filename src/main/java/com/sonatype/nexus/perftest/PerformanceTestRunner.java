@@ -7,6 +7,10 @@
 package com.sonatype.nexus.perftest;
 
 import java.io.File;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
+import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -14,23 +18,40 @@ import com.fasterxml.jackson.databind.InjectableValues;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public class PerformanceTestRunner
 {
+  private static final Logger log = LoggerFactory.getLogger(PerformanceTestRunner.class);
+
   public static void main(String[] args) throws Exception {
     if (args == null || args.length < 1) {
-      throw new IllegalArgumentException("You must specify the dataDirectory");
+      throw new IllegalArgumentException(
+          "You must specify the dataDirectory OR string 'remote' for remote JXM control");
     }
 
-    new PerformanceTestRunner().run(new File(args[0]));
+    String argument = args[0];
+    if ("remote".equals(argument)) {
+      // JMX remote control
+      log.info("JMX controlled nexus-perf client");
+      new PerformanceTestMBeanImpl();
+      new CountDownLatch(1).await();
+    }
+    else {
+      // old behaviour
+      PerformanceTest test = create(new File(args[0]), null);
+      test.run();
+      log.info("Exit");
+      System.exit(0);
+    }
   }
 
-  public void run(File dataDirectory) throws Exception {
-    Context context = new Context(dataDirectory);
-    runTest(context);
-  }
-
-  private void runTest(final Context context) throws Exception {
+  public static PerformanceTest create(final File dataDirectory, @Nullable final Map<String, String> overrides) throws Exception {
+    checkArgument(dataDirectory.isDirectory(), "Not a directory: %s", dataDirectory);
+    Context context = new Context(dataDirectory, overrides);
     final Nexus nexus = new Nexus();
     ObjectMapper mapper = new XmlMapper();
     SimpleModule module = new SimpleModule();
@@ -50,10 +71,7 @@ public class PerformanceTestRunner
         return null;
       }
     });
-    System.out.format("Using scenario %s\n", context.getScenario());
-    PerformanceTest test = mapper.readValue(context.getScenario(), PerformanceTest.class);
-    test.run();
-    System.out.println("Exit");
-    System.exit(0);
+    log.info("Using scenario {}", context.getScenario());
+    return mapper.readValue(context.getScenario(), PerformanceTest.class);
   }
 }

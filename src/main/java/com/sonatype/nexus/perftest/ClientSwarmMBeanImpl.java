@@ -9,9 +9,8 @@ package com.sonatype.nexus.perftest;
 
 import java.util.concurrent.TimeUnit;
 
+import javax.management.ObjectName;
 import javax.management.StandardMBean;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * JMX endpoint for ClientSwarm.
@@ -20,15 +19,26 @@ public class ClientSwarmMBeanImpl
     extends StandardMBean
     implements ClientSwarmMBean
 {
+  private final ObjectName objectName;
+
   private final ClientSwarm clientSwarm;
 
-  public ClientSwarmMBeanImpl(final ClientSwarm clientSwarm) {
+  private final String metricsDomain;
+
+  public ClientSwarmMBeanImpl(final ObjectName objectName, final ClientSwarm clientSwarm, String metricsDomain) {
     super(ClientSwarmMBean.class, false);
+    this.objectName = objectName;
     this.clientSwarm = clientSwarm;
+    this.metricsDomain = metricsDomain;
   }
 
   @Override
-  public String getName() {
+  public ObjectName getObjectName() {
+    return objectName;
+  }
+
+  @Override
+  public String getSwarmName() {
     return clientSwarm.getSwarmName();
   }
 
@@ -58,6 +68,11 @@ public class ClientSwarmMBeanImpl
 
   @Override
   public int getWaitingCount() { return clientSwarm.getRate().getWaitingCount(); }
+
+  @Override
+  public String getMetricsDomain() {
+    return metricsDomain;
+  }
 
   @Override
   public int getRateMultiplier() {

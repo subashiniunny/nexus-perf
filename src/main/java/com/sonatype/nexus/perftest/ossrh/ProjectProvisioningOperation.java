@@ -29,7 +29,7 @@ public class ProjectProvisioningOperation
 
   @Override
   public void perform(ClientRequestInfo requestInfo) throws Exception {
-    HttpClient httpclient = getHttpClient();
+    HttpClient httpclient = requestInfo.getHttpClient();
 
     StringBuilder url = new StringBuilder(nexusBaseurl);
     if (!nexusBaseurl.endsWith("/")) {

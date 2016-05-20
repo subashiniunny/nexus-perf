@@ -10,7 +10,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
+
+import javax.annotation.Nullable;
 
 public class Context
 {
@@ -20,7 +23,7 @@ public class Context
 
   private final Properties properties;
 
-  public Context(final File dir) throws IOException {
+  public Context(final File dir, @Nullable final Map<String, String> overrides) throws IOException {
     this.dataDirectory = dir.getCanonicalFile();
     if (!dataDirectory.isDirectory()) {
       throw new IllegalArgumentException(dataDirectory + "is not a directory");
@@ -33,6 +36,9 @@ public class Context
     properties = new Properties();
     try (InputStream is = new FileInputStream(perfProperties)) {
       properties.load(is);
+    }
+    if (overrides != null) {
+      overrides.forEach((k, v) -> properties.setProperty(k, v));
     }
     String scenario = properties.getProperty("perftest.scenario");
     this.scenarioFile = resolve(scenario);

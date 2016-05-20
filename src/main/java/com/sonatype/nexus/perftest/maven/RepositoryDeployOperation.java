@@ -57,7 +57,7 @@ public class RepositoryDeployOperation
   public void perform(ClientRequestInfo requestInfo) throws Exception {
     MavenHostedRepository repository = repositories.get(MavenHostedRepository.class, repo);
 
-    final ArtifactDeployer deployer = new ArtifactDeployer(getHttpClient(), repository.contentUri());
+    final ArtifactDeployer deployer = new ArtifactDeployer(requestInfo.getHttpClient(), repository.contentUri());
     final String version = requestInfo.getClientId() + "." + requestInfo.getRequestId();
 
     Meter uploadedBytesMeter = requestInfo.getContextValue("metric.uploadedBytesMeter");

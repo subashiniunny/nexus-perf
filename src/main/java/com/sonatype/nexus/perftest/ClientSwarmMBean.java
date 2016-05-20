@@ -7,15 +7,22 @@
  */
 package com.sonatype.nexus.perftest;
 
+import javax.management.ObjectName;
+
 /**
  * JMX endpoint for ClientSwarm.
  */
 public interface ClientSwarmMBean
 {
   /**
+   * Returns {@link ObjectName} of this swarm.
+   */
+  ObjectName getObjectName();
+
+  /**
    * Swarm name as set in scenario.
    */
-  String getName();
+  String getSwarmName();
 
   /**
    * Returns the multiplier of to-do's, basically controls how many permits are put into Semaphore at given rate,
@@ -63,4 +70,6 @@ public interface ClientSwarmMBean
    * growing too, see {@link #getToDoCount()}.
    */
   int getWaitingCount();
+
+  String getMetricsDomain();
 }

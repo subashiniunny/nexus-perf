@@ -39,21 +39,21 @@ public class SFOriginalScenarioTest
     HttpdLogParser paths = new HttpdLogParser(new File("maven-3.1-build-artifact-access.log"));
     BatchDownloadsOperation provision = new BatchDownloadsOperation(nexus, "public", paths);
     final RequestRate provisionRate = new RequestRate(5 * 2000, TimeUnit.DAYS);
-    final ClientSwarm provisioners = new ClientSwarm("provision", provision, null, provisionRate, DOWNLOAD_TCOUNT);
+    final ClientSwarm provisioners = new ClientSwarm(new Nexus(), "provision", provision, null, provisionRate, DOWNLOAD_TCOUNT);
     final Metric provisionMetric = provisioners.getMetric();
 
     // deploy artifacts to unique repositories
     UniqueRepositoryDeployOperation deploy =
         new UniqueRepositoryDeployOperation(nexus, new File(basedir), new File("pom.xml"), true, false);
     final RequestRate deployRate = new RequestRate(5 * 400, TimeUnit.DAYS);
-    final ClientSwarm deployers = new ClientSwarm("deploy", deploy, null, deployRate, DEPLOY_TCOUNT);
+    final ClientSwarm deployers = new ClientSwarm(new Nexus(), "deploy", deploy, null, deployRate, DEPLOY_TCOUNT);
     final Metric deployMetric = deployers.getMetric();
 
     provisioners.start();
     deployers.start();
 
     final Metric[] metrics = new Metric[]{provisionMetric, deployMetric};
-    new ProgressTickThread(metrics);
+    new ProgressTickThread(metrics).start();
     Thread.sleep(TimeUnit.MINUTES.toMillis(10));
 
     provisioners.stop();

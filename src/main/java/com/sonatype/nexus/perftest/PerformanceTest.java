@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -21,15 +23,21 @@ import com.sonatype.nexus.perftest.db.TestExecution;
 import com.sonatype.nexus.perftest.db.TestExecutions;
 
 import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.ObjectNameFactory;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PerformanceTest
+    implements Runnable
 {
+  private static final Logger log = LoggerFactory.getLogger(PerformanceTest.class);
 
   @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.PROPERTY, property = "class")
   public interface NexusConfigurator
@@ -49,12 +57,18 @@ public class PerformanceTest
 
   private final Collection<ClientSwarm> swarms;
 
+  private final CountDownLatch stopLatch;
+
+  private final List<ObjectName> objectNames;
+
+  private final List<JmxReporter> jmxReporters;
+
   @JsonCreator
   public PerformanceTest(
       @JsonProperty("name") String name,
       @JsonProperty("duration") Duration duration,
       @JsonProperty("configurators") Collection<NexusConfigurator> configurators, //
-      @JsonProperty("swarms") Collection<ClientSwarm> swarms)
+      @JsonProperty("swarms") Collection<ClientSwarm> swarms) throws Exception
   {
     this.name = name;
     this.duration = duration;
@@ -65,10 +79,25 @@ public class PerformanceTest
       this.configurators = Collections.emptyList();
     }
     this.swarms = Collections.unmodifiableCollection(new ArrayList<>(swarms));
+    this.stopLatch = new CountDownLatch(1);
 
+    this.objectNames = new ArrayList<>(swarms.size());
+    this.jmxReporters = new ArrayList<>(swarms.size());
+    MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+    for (ClientSwarm swarm : swarms) {
+      String metricsDomain = getClass().getPackage().getName() + "." + swarm.getSwarmName();
+      JmxReporter jmxReporter = JmxReporter.forRegistry(SharedMetricRegistries.getOrCreate(swarm.getSwarmName()))
+          .inDomain(metricsDomain).build();
+      jmxReporter.start();
+      jmxReporters.add(jmxReporter);
+      ObjectName objectName = ObjectName.getInstance(getClass().getPackage().getName(), "name", swarm.getSwarmName());
+      server.registerMBean(new ClientSwarmMBeanImpl(objectName, swarm,metricsDomain), objectName);
+      objectNames.add(objectName);
+    }
   }
 
-  public void run() throws Exception {
+  public void run() {
+    log.info("Starting...");
     TestExecution baseline = null;
     if (baselineId != null) {
       baseline = TestExecutions.select(name, baselineId);
@@ -77,42 +106,65 @@ public class PerformanceTest
       }
     }
 
-    MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-
     List<Metric> metrics = new ArrayList<>();
     for (ClientSwarm swarm : swarms) {
-      JmxReporter.forRegistry(SharedMetricRegistries.getOrCreate(swarm.getSwarmName()))
-          .inDomain(name + "." + swarm.getSwarmName()).build().start();
       metrics.add(swarm.getMetric());
-      ObjectName objectName = ObjectName.getInstance(getClass().getPackage().getName(), "name", swarm.getSwarmName());
-      server.registerMBean(new ClientSwarmMBeanImpl(swarm), objectName);
-
       swarm.start();
     }
 
     ProgressTickThread progressTickThread = new ProgressTickThread(metrics.toArray(new Metric[metrics.size()]));
+    progressTickThread.start();
 
-    Thread.sleep(duration.toMillis());
+    log.info("Started");
 
-    System.err.println("Stopping...");
-    for (ClientSwarm swarm : swarms) {
-      swarm.stop();
+    boolean stopped = false;
+    try {
+      stopped = !stopLatch.await(duration.toMillis(), TimeUnit.MILLISECONDS);
+
+      log.info("Stopping...");
+      for (ClientSwarm swarm : swarms) {
+        swarm.stop();
+      }
+      progressTickThread.interrupt();
+      progressTickThread.join();
+      progressTickThread.printTick();
+      log.info("Stopped");
     }
-    progressTickThread.interrupt();
-    progressTickThread.join();
-    progressTickThread.printTick();
-    System.err.println("Stopped");
+    catch (Exception e) {
+      log.error("Error", e);
+    }
 
     for (NexusConfigurator configurator : configurators) {
       try {
         configurator.cleanup();
       }
       catch (Exception e) {
-        e.printStackTrace();
+        log.error("Configurator error", e);
       }
     }
 
-    assertPerformance(metrics, baseline);
+    if (!stopped) {
+      assertPerformance(metrics, baseline);
+    }
+  }
+
+  public void stop() {
+    stopLatch.countDown();
+
+    // remove JMX and metric bits
+    for (JmxReporter jmxReporter : jmxReporters) {
+      jmxReporter.stop();
+    }
+
+    MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+    for (ObjectName objectName : objectNames) {
+      try {
+        server.unregisterMBean(objectName);
+      }
+      catch (Exception e) {
+        log.error("JMX Error", e);
+      }
+    }
   }
 
   private void assertPerformance(List<Metric> metrics, TestExecution baseline) {
@@ -140,6 +192,10 @@ public class PerformanceTest
 
   public Collection<ClientSwarm> getSwarms() {
     return Collections.unmodifiableCollection(new ArrayList<>(swarms));
+  }
+
+  public List<ObjectName> getObjectNames() {
+    return objectNames;
   }
 
   @Override
