@@ -43,7 +43,7 @@ public class BatchDownloadsOperation
     // parse contents of httd log, download artifacts in the log, check sha1,
     // fail if any is not available or checksum fails
 
-    HttpClient httpClient = getHttpClient();
+    HttpClient httpClient = requestInfo.getHttpClient();
 
     for (String path : paths.getAll()) {
       if (path.endsWith(".jar") || path.endsWith(".pom")) {

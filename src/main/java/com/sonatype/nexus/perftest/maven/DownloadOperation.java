@@ -38,7 +38,7 @@ public class DownloadOperation
   @Override
   public void perform(ClientRequestInfo requestInfo) throws Exception {
     Meter downloadedBytesMeter = requestInfo.getContextValue("metric.downloadedBytesMeter");
-    long downloaded = downloadAction.download(getHttpClient(), paths.getNext());
+    long downloaded = downloadAction.download(requestInfo.getHttpClient(), paths.getNext());
     downloadedBytesMeter.mark(downloaded);
   }
 }

@@ -11,8 +11,6 @@ import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
-
 import org.sonatype.nexus.client.core.NexusClient;
 import org.sonatype.nexus.client.core.spi.SubsystemFactory;
 import org.sonatype.nexus.client.core.spi.subsystem.repository.RepositoryFactory;
@@ -32,19 +30,12 @@ import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmGroupRepositoryFact
 import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmHostedRepositoryFactory;
 import com.bolyuba.nexus.plugin.npm.client.internal.JerseyNpmProxyRepositoryFactory;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractNexusOperation
 {
-
-  public static final int HTTP_TIMEOUT = Integer.parseInt(System.getProperty("perftest.http.timeout", "60000"));
+  protected final Logger log = LoggerFactory.getLogger(getClass());
 
   protected final String username;
 
@@ -64,28 +55,6 @@ public abstract class AbstractNexusOperation
     }
     nexusBaseurl = nexusBaseurl.trim();
     return nexusBaseurl.endsWith("/") ? nexusBaseurl : (nexusBaseurl + "/");
-  }
-
-  protected HttpClient getHttpClient() {
-    ClientRequestInfo info = ((ClientRequestInfo) Thread.currentThread());
-
-    HttpClient httpclient = info.getContextValue("httpclient");
-    if (httpclient == null) {
-      CredentialsProvider credsProvider = new BasicCredentialsProvider();
-      credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
-      BasicHttpClientConnectionManager clientConnectionManager = new BasicHttpClientConnectionManager();
-
-      httpclient = HttpClients.custom()
-          .setConnectionManager(clientConnectionManager)
-          .setDefaultRequestConfig(
-              RequestConfig.custom()
-                  .setConnectTimeout(HTTP_TIMEOUT)
-                  .setSocketTimeout(HTTP_TIMEOUT).build()
-          )
-          .setDefaultCredentialsProvider(credsProvider).build();
-      info.setContextValue("httpclient", httpclient);
-    }
-    return httpclient;
   }
 
   protected boolean isSuccess(HttpResponse response) {

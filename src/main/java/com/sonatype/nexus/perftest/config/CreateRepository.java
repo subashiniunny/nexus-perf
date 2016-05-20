@@ -95,13 +95,13 @@ public class CreateRepository
     try {
       repository = create();
       repository.save();
-      System.out.println("Created repository: " + repo + "(" + format + ", " + type + ")");
+      log.info("Created repository: {} ({}, {})", repo, format, type);
     }
     catch (Exception e) {
       if (!failIfExists) {
         createException = e;
         repository = repositories.get(repo);
-        System.out.println("Using existing repository: " + repo);
+        log.info("Using existing repository: {}", repo);
       }
       else {
         throw e;

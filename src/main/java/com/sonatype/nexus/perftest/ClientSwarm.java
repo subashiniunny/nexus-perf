@@ -7,6 +7,7 @@
  */
 package com.sonatype.nexus.perftest;
 
+import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,12 +19,24 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricSet;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.codahale.metrics.Timer;
+import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.google.common.collect.ImmutableMap;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Models a group of similar clients. The clients performs the same operation. Request rate is
@@ -31,6 +44,10 @@ import com.google.common.collect.ImmutableMap;
  */
 public class ClientSwarm
 {
+  public static final int HTTP_TIMEOUT = Integer.parseInt(System.getProperty("perftest.http.timeout", "60000"));
+
+  private static final Logger log = LoggerFactory.getLogger(ClientSwarm.class);
+
   private final String swarmName;
 
   private final List<ClientThread> threads;
@@ -63,6 +80,8 @@ public class ClientSwarm
 
     <T> T getContextValue(String key);
 
+    HttpClient getHttpClient();
+
     /**
      * timestamp of the request relative to the test start time
      */
@@ -89,11 +108,21 @@ public class ClientSwarm
 
     private final Metric metric;
 
+    private final CloseableHttpClient httpClient;
+
     private int requestId;
 
     private final Map<String, Object> context = new HashMap<>();
 
-    public ClientThread(String swarmName, int clientId, Operation operation, Metric metric, RequestRate rate, Meter downloadedBytesMeter, Meter uploadedBytesMeter) {
+    public ClientThread(Nexus nexus,
+                        String swarmName,
+                        int clientId,
+                        Operation operation,
+                        Metric metric,
+                        RequestRate rate,
+                        Meter downloadedBytesMeter,
+                        Meter uploadedBytesMeter)
+    {
       super(String.format("%s-%d", swarmName, clientId));
       this.swarmName = swarmName;
       this.clientId = clientId;
@@ -102,6 +131,18 @@ public class ClientSwarm
       this.rate = rate;
       this.context.put("metric.downloadedBytesMeter", downloadedBytesMeter);
       this.context.put("metric.uploadedBytesMeter", uploadedBytesMeter);
+
+      CredentialsProvider credsProvider = new BasicCredentialsProvider();
+      credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(nexus.getUsername(), nexus.getPassword()));
+      BasicHttpClientConnectionManager clientConnectionManager = new BasicHttpClientConnectionManager();
+      this.httpClient = HttpClients.custom()
+          .setConnectionManager(clientConnectionManager)
+          .setDefaultRequestConfig(
+              RequestConfig.custom()
+                  .setConnectTimeout(HTTP_TIMEOUT)
+                  .setSocketTimeout(HTTP_TIMEOUT).build()
+          )
+          .setDefaultCredentialsProvider(credsProvider).build();
     }
 
     @Override
@@ -126,12 +167,12 @@ public class ClientSwarm
         }
         catch (InterruptedException | InterruptedIOException e) {
           // TODO more graceful shutdown
-          printStackTrace(e);
+          log.warn(e.getMessage());
           break;
         }
         catch (Exception e) {
           failureMessage = e.getMessage();
-          printStackTrace(e);
+          log.warn("Unexpected exception", e);
         }
         finally {
           timerContext.stop();
@@ -145,10 +186,6 @@ public class ClientSwarm
           }
         }
       }
-    }
-
-    private void printStackTrace(final Exception e) {
-      System.err.println(Thread.currentThread().getName() + " " + e.getMessage());
     }
 
     @Override
@@ -178,18 +215,36 @@ public class ClientSwarm
     }
 
     @Override
+    public HttpClient getHttpClient() {
+      return httpClient;
+    }
+
+    @Override
     public long getTestTimeMillis() {
       return System.currentTimeMillis() - rate.getStartTimeMillis();
+    }
+
+    @Override
+    public void interrupt() {
+      try {
+        this.httpClient.close();
+      }
+      catch (IOException e) {
+        log.error("Could not close HttpClient", e);
+      }
+      finally {
+        super.interrupt();
+      }
     }
   }
 
   @JsonCreator
-  public ClientSwarm( //
-                      @JsonProperty("name") String name, //
-                      @JsonProperty("operation") Operation operation, //
-                      @JsonProperty(value = "initialDelay", required = false) Duration initialDelay, //
-                      @JsonProperty("rate") RequestRate rate, //
-                      @JsonProperty("numberOfClients") int clientCount)
+  public ClientSwarm(@JacksonInject Nexus nexus,
+                     @JsonProperty("name") String name, //
+                     @JsonProperty("operation") Operation operation, //
+                     @JsonProperty(value = "initialDelay", required = false) Duration initialDelay, //
+                     @JsonProperty("rate") RequestRate rate, //
+                     @JsonProperty("numberOfClients") int clientCount)
   {
     this.requestsMeter = new Meter();
     this.requestDurationTimer = new Timer();
@@ -198,7 +253,8 @@ public class ClientSwarm
     this.downloadedBytesMeter = new Meter();
     this.uploadedBytesMeter = new Meter();
 
-    MetricSet metricSet = new MetricSet() {
+    MetricSet metricSet = new MetricSet()
+    {
       @Override
       public Map<String, com.codahale.metrics.Metric> getMetrics() {
         return ImmutableMap.<String, com.codahale.metrics.Metric>builder()
@@ -219,7 +275,8 @@ public class ClientSwarm
     metric = new Metric(name);
     List<ClientThread> threads = new ArrayList<>();
     for (int i = 0; i < clientCount; i++) {
-      ClientThread clientThread = new ClientThread(name, i, operation, metric, rate, downloadedBytesMeter, uploadedBytesMeter);
+      ClientThread clientThread = new ClientThread(nexus, name, i, operation, metric, rate, downloadedBytesMeter,
+          uploadedBytesMeter);
       clientThread.setName(swarmName + i);
       threads.add(clientThread);
     }
@@ -243,9 +300,10 @@ public class ClientSwarm
         for (StackTraceElement f : thread.getStackTrace()) {
           sb.append("\t").append(f.toString()).append("\n");
         }
-        System.err.println(sb.toString());
+        log.error("{}", sb);
       }
     }
+    SharedMetricRegistries.remove(swarmName);
   }
 
   public String getSwarmName() {

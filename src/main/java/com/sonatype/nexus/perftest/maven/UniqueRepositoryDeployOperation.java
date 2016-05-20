@@ -64,7 +64,7 @@ public class UniqueRepositoryDeployOperation
     }
     repository.save();
 
-    final ArtifactDeployer deployer = new ArtifactDeployer(getHttpClient(), repository.contentUri());
+    final ArtifactDeployer deployer = new ArtifactDeployer(requestInfo.getHttpClient(), repository.contentUri());
     final String groupId = "test.uniquerepodeploy"; // always the same groupId
     final String version = repoId;
 
