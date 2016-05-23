@@ -21,6 +21,8 @@ import java.util.zip.GZIPInputStream;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public class CsvLogParser
     implements DownloadPaths
 {
@@ -42,6 +44,7 @@ public class CsvLogParser
       }
     }
     this.paths = Collections.unmodifiableList(paths);
+    checkArgument(this.paths.size() > 0, "No paths loaded");
   }
 
   @Override
