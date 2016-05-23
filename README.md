@@ -26,7 +26,9 @@ This build produces one, but you can produce many more if want.
 To run it using JMX remote access enabled:
 
 ```
-java -Dcom.sun.management.jmxremote.port=5000 \
+java -Dcom.sun.management.jmxremote \
+  -Dcom.sun.management.jmxremote.port=5000 \
+  -Dcom.sun.management.jmxremote.rmi.port=5000 \
   -Dcom.sun.management.jmxremote.authenticate=false \
   -Dcom.sun.management.jmxremote.ssl=false \
   -jar nexus-perf-1.0.4-SNAPSHOT-jar-with-dependencies.jar \
@@ -39,7 +41,9 @@ The library can be started in agent mode by specifying "remote" as
 directory. Agent mode is only useful with JMX access enabled:
 
 ```
-java -Dcom.sun.management.jmxremote.port=5000 \
+java -Dcom.sun.management.jmxremote \
+  -Dcom.sun.management.jmxremote.port=5000 \
+  -Dcom.sun.management.jmxremote.rmi.port=5000 \
   -Dcom.sun.management.jmxremote.authenticate=false \
   -Dcom.sun.management.jmxremote.ssl=false \
   -jar nexus-perf-1.0.7-jar-with-dependencies.jar \
