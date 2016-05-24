@@ -2,7 +2,7 @@ FROM       centos:centos7
 MAINTAINER Takari <tamas@takari.io>
 
 ENV NEXUS_PERF_HOME /opt/sonatype/nexus-perf
-ENV NEXUS_PERF_DATA_VERSION 1.0.2
+ENV NEXUS_PERF_DATA_VERSION 1.0.3
 ENV NEXUS_PERF_CLIENT_VERSION 1.0.7
 ENV NEXUS_PERF_CLIENT_JMX_HOST 192.168.99.100
 ENV NEXUS_PERF_CLIENT_JMX_PORT 5000
@@ -25,12 +25,14 @@ RUN mkdir -p /opt \
   | tar -x -C /opt \
   && ln -s /opt/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR} ${JAVA_HOME}
 
+# install perf client
 RUN mkdir -p ${NEXUS_PERF_HOME} \
   && curl --fail --silent --location --retry 3 --output ${NEXUS_PERF_HOME}/nexus-perf.jar \
     http://repo1.maven.org/maven2/io/takari/nexus/nexus-perf/${NEXUS_PERF_CLIENT_VERSION}/nexus-perf-${NEXUS_PERF_CLIENT_VERSION}-jar-with-dependencies.jar
 
+# install perf data (all)
 RUN curl --fail --silent --location --retry 3 \
-    https://repo1.maven.org/maven2/io/takari/nexus/perf/data/maven/maven01/${NEXUS_PERF_DATA_VERSION}/maven01-${NEXUS_PERF_DATA_VERSION}-data.tar.gz \
+    http://repo1.maven.org/maven2/io/takari/nexus/perf/data/all/${NEXUS_PERF_DATA_VERSION}/all-${NEXUS_PERF_DATA_VERSION}-data.tar.gz \
   | gunzip \
   | tar -x -C ${NEXUS_PERF_HOME}
 
@@ -43,5 +45,5 @@ USER nexus
 
 ENV MAX_HEAP 768m
 ENV MIN_HEAP 256m
-ENV JAVA_OPTS -server -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.rmi.port=${NEXUS_PERF_CLIENT_JMX_PORT} -Djava.rmi.server.hostname=${NEXUS_PERF_CLIENT_JMX_HOST}
+ENV JAVA_OPTS -server -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${NEXUS_PERF_CLIENT_JMX_PORT} -Dcom.sun.management.jmxremote.rmi.port=${NEXUS_PERF_CLIENT_JMX_PORT} -Djava.rmi.server.hostname=${NEXUS_PERF_CLIENT_JMX_HOST} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
 CMD ${JAVA_HOME}/bin/java ${JAVA_OPTS} -jar nexus-perf.jar remote
