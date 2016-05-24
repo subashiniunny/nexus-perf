@@ -37,6 +37,29 @@ public class Nexus
     public static final Attribute<Integer> activeThreads = new Attribute<>(
         "\"org.eclipse.jetty.util.thread\":type=\"QueuedThreadPool\",name=\"active-threads\"", "Value"
     );
+
+    public static final Attribute<Double> percentIdle = new Attribute<>(
+        "\"org.eclipse.jetty.util.thread\":type=\"QueuedThreadPool\",name=\"percent-idle\"", "Value"
+    );
+  }
+
+  public static class OperatingSystem
+  {
+    public static final Attribute<Long> openFileDescriptorCount = new Attribute<>(
+        "java.lang:type=OperatingSystem", "OpenFileDescriptorCount"
+    );
+
+    public static final Attribute<Long> maxFileDescriptorCount = new Attribute<>(
+        "java.lang:type=OperatingSystem", "MaxFileDescriptorCount"
+    );
+
+    public static final Attribute<Double> processCpuLoad = new Attribute<>(
+        "java.lang:type=OperatingSystem", "ProcessCpuLoad"
+    );
+
+    public static final Attribute<Double> systemCpuLoad = new Attribute<>(
+        "java.lang:type=OperatingSystem", "SystemCpuLoad"
+    );
   }
 
 }
