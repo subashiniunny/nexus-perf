@@ -23,6 +23,10 @@ public class AgentPool
     this.urls = urls;
   }
 
+  public Collection<Agent> acquireAll() {
+    return acquire(urls.size());
+  }
+
   public Collection<Agent> acquire(final int size) {
     log.info("Acquiring {} agents...", size);
     Collection<Agent> result = new ArrayList<>();
