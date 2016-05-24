@@ -51,7 +51,7 @@ public class PerformanceTest
 
   private final String name;
 
-  private final Duration duration;
+  private Duration duration;
 
   private final Collection<NexusConfigurator> configurators;
 
@@ -196,6 +196,14 @@ public class PerformanceTest
 
   public List<ObjectName> getObjectNames() {
     return objectNames;
+  }
+
+  public Duration getDuration() {
+    return duration;
+  }
+
+  public void setDuration(final Duration duration) {
+    this.duration = duration;
   }
 
   @Override

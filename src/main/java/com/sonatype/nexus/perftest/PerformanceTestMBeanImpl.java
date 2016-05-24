@@ -133,6 +133,14 @@ public class PerformanceTestMBeanImpl
   }
 
   @Override
+  public String getDuration() {
+    if (performanceTest == null) {
+      return null;
+    }
+    return java.time.Duration.ofMillis(performanceTest.getDuration().toMillis()).toString();
+  }
+
+  @Override
   public void exit(final int code) {
     try {
       stop();

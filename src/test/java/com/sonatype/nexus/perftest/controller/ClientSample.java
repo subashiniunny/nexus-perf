@@ -45,7 +45,7 @@ public class ClientSample
               );
               System.out.println();
               pool.releaseAll();
-            }).setThreshold(395)
+            }).setThreshold(500)
     );
 
     try {
@@ -54,16 +54,17 @@ public class ClientSample
 
       Map<String, String> overrides = new HashMap<>();
       overrides.put("nexus.baseurl", "http://localhost:8081/nexus");
+      overrides.put("test.duration", "2 MINUTES");
 
       m01Agents.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
       m02Agents.parallelStream().forEach(client -> client.start("maven01-1.0.3-SNAPSHOT", overrides));
 
       List<Swarm> m1Swarms = m01Agents.stream().map(Agent::getSwarms).flatMap(Collection::stream)
           .collect(Collectors.toList());
-      m1Swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
-        control.setRateMultiplier(5);
-        control.setRateSleepMillis(7);
-      });
+      //m1Swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
+      //  control.setRateMultiplier(5);
+      //  control.setRateSleepMillis(7);
+      //});
       m01Agents.parallelStream().forEach(Agent::waitToFinish);
       m02Agents.parallelStream().forEach(Agent::waitToFinish);
 

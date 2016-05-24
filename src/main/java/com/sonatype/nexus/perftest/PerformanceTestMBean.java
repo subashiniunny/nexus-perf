@@ -39,9 +39,14 @@ public interface PerformanceTestMBean
   boolean stop();
 
   /**
-   * Returns {@code true} if performce test is running, {@code false} otherwise.
+   * Returns {@code true} if performance test is running, {@code false} otherwise.
    */
   boolean isRunning();
+
+  /**
+   * @return a string representation of test duration using ISO-8601 seconds based representation, such as PT8H6M12.345S.
+   */
+  String getDuration();
 
   /**
    * Stops the performance test if runs, and exits the app, thus JVM too, with given code.
