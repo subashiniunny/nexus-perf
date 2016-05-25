@@ -1,26 +1,37 @@
 package com.sonatype.nexus.perftest.controller;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.management.remote.JMXServiceURL;
 
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 public class AgentPool
 {
   private static final Logger log = LoggerFactory.getLogger(AgentPool.class);
 
-  private final Collection<JMXServiceURL> urls;
+  private final Queue<JMXServiceURL> urls;
 
-  private final Collection<Agent> acquired = new ArrayList<>();
+  private final Collection<Agent> acquired = new CopyOnWriteArrayList<>();
+
+  private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
   public AgentPool(final Collection<JMXServiceURL> urls) {
-    this.urls = urls;
+    this.urls = new ConcurrentLinkedQueue<>(checkNotNull(urls));
   }
 
   public Collection<Agent> acquireAll() {
@@ -29,18 +40,34 @@ public class AgentPool
 
   public Collection<Agent> acquire(final int size) {
     log.info("Acquiring {} agents...", size);
-    Collection<Agent> result = new ArrayList<>();
-    Iterator<JMXServiceURL> it = urls.iterator();
-    while (result.size() < size && it.hasNext()) {
-      JMXServiceURL url = it.next();
-      it.remove();
-      Agent agent = new Agent(url);
-      result.add(agent);
-      log.info("Acquired {}", agent);
+    try {
+      List<Agent> agents = executor.invokeAll(
+          IntStream.range(0, size)
+              .mapToObj(i -> (Callable<Agent>) () -> {
+                Agent agent = new Agent(urls.poll());
+                log.info("Acquired {}", agent);
+                return agent;
+              })
+              .collect(Collectors.toList())
+      ).stream()
+          .map(f -> {
+            try {
+              return f.get();
+            }
+            catch (Exception e) {
+              throw Throwables.propagate(e);
+            }
+          }).collect(Collectors.toList());
+
+      checkState(
+          size == agents.size(), "Acquired number of agents (%s) is not of expected size (%s)", agents.size(), size
+      );
+      acquired.addAll(agents);
+      return agents;
     }
-    checkState(size == result.size());
-    acquired.addAll(result);
-    return result;
+    catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   public void releaseAll() {
@@ -49,16 +76,27 @@ public class AgentPool
 
   public void release(final Collection<Agent> agents) {
     log.info("Releasing {} agents...", agents.size());
-    for (Iterator<Agent> i = agents.iterator(); i.hasNext(); ) {
-      Agent agent = i.next();
-      try {
-        log.info("Releasing {}", agent);
-        agent.stop();
-        i.remove();
-      }
-      catch (Exception e) {
-        log.error("Could not stop {}", agent, e);
-      }
+
+    ConcurrentLinkedQueue<Agent> toRelease = new ConcurrentLinkedQueue<>(checkNotNull(agents));
+    try {
+      executor.invokeAll(
+          IntStream.range(0, agents.size())
+              .mapToObj(i -> Executors.callable(() -> {
+                Agent agent = toRelease.poll();
+                try {
+                  log.info("Releasing {}", agent);
+                  agent.stop();
+                  acquired.remove(agent);
+                }
+                catch (Exception e) {
+                  log.error("Could not stop {}", agent, e);
+                }
+              }))
+              .collect(Collectors.toList())
+      );
+    }
+    catch (InterruptedException e) {
+      throw Throwables.propagate(e);
     }
   }
 
