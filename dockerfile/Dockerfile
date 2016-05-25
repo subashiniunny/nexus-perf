@@ -45,5 +45,11 @@ USER nexus
 
 ENV MAX_HEAP 768m
 ENV MIN_HEAP 256m
-ENV JAVA_OPTS -server -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=${NEXUS_PERF_CLIENT_JMX_PORT} -Dcom.sun.management.jmxremote.rmi.port=${NEXUS_PERF_CLIENT_JMX_PORT} -Djava.rmi.server.hostname=${NEXUS_PERF_CLIENT_JMX_HOST} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
+ENV JAVA_OPTS -server \
+              -Djava.net.preferIPv4Stack=true \
+              -Dcom.sun.management.jmxremote.port=${NEXUS_PERF_CLIENT_JMX_PORT} \
+              -Dcom.sun.management.jmxremote.rmi.port=${NEXUS_PERF_CLIENT_JMX_PORT} \
+              -Djava.rmi.server.hostname=${NEXUS_PERF_CLIENT_JMX_HOST} \
+              -Dcom.sun.management.jmxremote.authenticate=false \
+              -Dcom.sun.management.jmxremote.ssl=false
 CMD ${JAVA_HOME}/bin/java ${JAVA_OPTS} -jar nexus-perf.jar remote
