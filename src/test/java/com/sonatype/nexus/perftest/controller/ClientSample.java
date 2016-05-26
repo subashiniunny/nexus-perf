@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.sonatype.nexus.perftest.controller.GaugeTrigger.State;
+
 import org.junit.Test;
 
 import static com.sonatype.nexus.perftest.controller.JMXServiceURLs.jmxServiceURL;
@@ -36,16 +38,25 @@ public class ClientSample
           pool.releaseAll();
         }
     ));
-    nexus.addTrigger(new ThresholdTrigger<>(
+    nexus.addTrigger(new GaugeTrigger<>(
             Nexus.QueuedThreadPool.activeThreads,
-            (trigger, activeThreads) -> {
-              System.out.println();
-              System.out.println(
-                  "!!!!!!!!!!!!!!!!! Nexus is dead (" + activeThreads + ")"
-              );
-              System.out.println();
-              pool.releaseAll();
-            }).setThreshold(500)
+            (state, activeThreads) -> {
+              if (State.HIGH == state) {
+                System.out.println();
+                System.out.println(
+                    "!!!!!!!!!!!!!!!!! Nexus is dead (" + activeThreads + ")"
+                );
+                System.out.println();
+                //pool.releaseAll();
+              }
+              else {
+                System.out.println();
+                System.out.println(
+                    "!!!!!!!!!!!!!!!!! Nexus is back to life (" + activeThreads + ")"
+                );
+                System.out.println();
+              }
+            }).setHighThreshold(200)
     );
 
     try {
@@ -61,10 +72,10 @@ public class ClientSample
 
       List<Swarm> m1Swarms = m01Agents.stream().map(Agent::getSwarms).flatMap(Collection::stream)
           .collect(Collectors.toList());
-      //m1Swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
-      //  control.setRateMultiplier(5);
-      //  control.setRateSleepMillis(7);
-      //});
+      m1Swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
+        control.setRateMultiplier(5);
+        control.setRateSleepMillis(7);
+      });
       m01Agents.parallelStream().forEach(Agent::waitToFinish);
       m02Agents.parallelStream().forEach(Agent::waitToFinish);
 
