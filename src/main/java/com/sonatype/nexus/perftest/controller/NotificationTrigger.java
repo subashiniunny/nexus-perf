@@ -1,6 +1,6 @@
 package com.sonatype.nexus.perftest.controller;
 
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import javax.management.Notification;
 import javax.management.ObjectName;
@@ -14,10 +14,10 @@ public class NotificationTrigger
 {
   private final ObjectName objectName;
 
-  private final BiConsumer<NotificationTrigger, Notification> consumer;
+  private final Consumer<Notification> consumer;
 
   public NotificationTrigger(final ObjectName objectName,
-                             final BiConsumer<NotificationTrigger, Notification> consumer)
+                             final Consumer<Notification> consumer)
   {
     this.objectName = checkNotNull(objectName);
     this.consumer = checkNotNull(consumer);
@@ -29,7 +29,7 @@ public class NotificationTrigger
       client.getConnection().addNotificationListener(
           objectName,
           (notification, handback) -> {
-            ringTheAlarm(notification);
+            consumer.accept(notification);
           },
           null,
           null
@@ -38,10 +38,6 @@ public class NotificationTrigger
     catch (Exception e) {
       throw Throwables.propagate(e);
     }
-  }
-
-  protected void ringTheAlarm(final Notification notification) {
-    consumer.accept(this, notification);
   }
 
   @Override
