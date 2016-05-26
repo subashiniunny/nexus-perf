@@ -14,7 +14,7 @@ public class QueuedThreadPoolUnhealthy
   {
     super(
         objectName(),
-        (notificationTrigger, notification) -> {
+        notification -> {
           if ("jetty-qtp".equals(notification.getType())) {
             consumer.accept(notification.getMessage());
           }
