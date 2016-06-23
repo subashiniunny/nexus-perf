@@ -1,5 +1,8 @@
 package com.sonatype.nexus.perftest.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -13,15 +16,24 @@ public class Nexus
 {
   private static final Logger log = LoggerFactory.getLogger(Nexus.class);
 
-  public Nexus(final JMXServiceURL serviceURL) {
+  public Nexus(final JMXServiceURL serviceURL, final String user, final String password) {
     try {
       log.info("Connecting to {} ...", serviceURL);
-      JMXConnector connector = JMXConnectorFactory.connect(serviceURL, null);
+      Map<String, String[]> env = new HashMap<>();
+      if (user != null) {
+        String[] credentials = {user, password};
+        env.put(JMXConnector.CREDENTIALS, credentials);
+      }
+      JMXConnector connector = JMXConnectorFactory.connect(serviceURL, env);
       setConnection(connector.getMBeanServerConnection());
     }
     catch (Exception e) {
       throw Throwables.propagate(e);
     }
+  }
+
+  public Nexus(final JMXServiceURL serviceURL) {
+    this(serviceURL, null, null);
   }
 
 
