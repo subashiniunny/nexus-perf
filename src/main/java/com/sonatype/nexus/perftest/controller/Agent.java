@@ -27,7 +27,7 @@ public class Agent
 {
   private static final Logger log = LoggerFactory.getLogger(Agent.class);
 
-  private final JMXServiceURL serviceURL;
+  private final JMXServiceURL jmxServiceURL;
 
   private MBeanServerConnection connection;
 
@@ -37,11 +37,11 @@ public class Agent
 
   private CountDownLatch finishSignal = new CountDownLatch(1);
 
-  public Agent(final JMXServiceURL serviceURL) {
-    this.serviceURL = serviceURL;
+  public Agent(final JMXServiceURL jmxServiceURL) {
+    this.jmxServiceURL = jmxServiceURL;
     try {
-      log.info("Connecting to {}...", serviceURL);
-      JMXConnector connector = JMXConnectorFactory.connect(serviceURL, null);
+      log.info("Connecting to {}...", jmxServiceURL);
+      JMXConnector connector = JMXConnectorFactory.connect(jmxServiceURL, null);
       connection = connector.getMBeanServerConnection();
       ObjectName controlBeanName = new ObjectName(PerformanceTest.class.getPackage().getName(), "name", "control");
       controlBean = JMX.newMBeanProxy(connection, controlBeanName, PerformanceTestMBean.class, false);
@@ -56,6 +56,7 @@ public class Agent
       }, null, null);
     }
     catch (Exception e) {
+      log.error("Could not connect to {}: {}", jmxServiceURL, e.toString());
       throw Throwables.propagate(e);
     }
   }
@@ -69,17 +70,29 @@ public class Agent
   }
 
   public Agent start(final String scenario, @Nullable Map<String, String> overrides) {
-    log.info("Starting scenario {} on {}", scenario, this);
-    swarms = controlBean.start(scenario, overrides).stream()
-        .map(name -> new Swarm(connection, name))
-        .collect(Collectors.toList());
-    return this;
+    try {
+      log.info("Starting scenario {} on {}", scenario, this);
+      swarms = controlBean.start(scenario, overrides).stream()
+          .map(name -> new Swarm(connection, name))
+          .collect(Collectors.toList());
+      return this;
+    }
+    catch (Exception e) {
+      log.error("Could not start scenario {} on {}: {}", scenario, this, e.toString());
+      throw e;
+    }
   }
 
   public Agent stop() {
-    log.info("Stopping {}", this);
-    controlBean.stop();
-    return this;
+    try {
+      log.info("Stopping {}", this);
+      controlBean.stop();
+      return this;
+    }
+    catch (Exception e) {
+      log.error("Could not stop {}: {}", this, e.toString());
+      throw e;
+    }
   }
 
   public Agent waitToFinish() {
@@ -103,9 +116,13 @@ public class Agent
     return this;
   }
 
+  public JMXServiceURL getJmxServiceURL() {
+    return jmxServiceURL;
+  }
+
   @Override
   public String toString() {
-    return serviceURL.toString();
+    return jmxServiceURL.toString();
   }
 }
 

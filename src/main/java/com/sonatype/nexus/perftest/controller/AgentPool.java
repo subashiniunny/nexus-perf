@@ -1,24 +1,23 @@
 package com.sonatype.nexus.perftest.controller;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.management.remote.JMXServiceURL;
 
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 public class AgentPool
 {
@@ -40,34 +39,43 @@ public class AgentPool
 
   public Collection<Agent> acquire(final int size) {
     log.info("Acquiring {} agents...", size);
-    try {
-      List<Agent> agents = executor.invokeAll(
-          IntStream.range(0, size)
-              .mapToObj(i -> (Callable<Agent>) () -> {
-                Agent agent = new Agent(urls.poll());
-                log.info("Acquired {}", agent);
-                return agent;
-              })
-              .collect(Collectors.toList())
-      ).stream()
-          .map(f -> {
-            try {
-              return f.get();
-            }
-            catch (Exception e) {
-              throw Throwables.propagate(e);
-            }
-          }).collect(Collectors.toList());
 
-      checkState(
-          size == agents.size(), "Acquired number of agents (%s) is not of expected size (%s)", agents.size(), size
-      );
-      acquired.addAll(agents);
-      return agents;
+    Semaphore nrOfAgents = new Semaphore(size, true);
+    Collection<Callable<Agent>> acquirers = new ArrayList<>();
+    Collection<JMXServiceURL> failed = new ArrayList<>();
+    Collection<Agent> agents = new ArrayList<>();
+    JMXServiceURL head;
+    while ((head = urls.poll()) != null) {
+      final JMXServiceURL jmxServiceURL = head;
+      acquirers.add(() -> {
+        if (nrOfAgents.availablePermits() > 0) {
+          try {
+            Agent agent = new Agent(jmxServiceURL);
+            if (nrOfAgents.tryAcquire()) {
+              log.info("Acquired {}", agent);
+              agents.add(agent);
+              return agent;
+            }
+          }
+          catch (Exception e) {
+            // ignore
+          }
+        }
+        failed.add(jmxServiceURL);
+        return null;
+      });
+    }
+    try {
+      executor.invokeAll(acquirers);
     }
     catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      log.warn("Interrupted, ignoring...", e);
     }
+    urls.addAll(failed);
+    acquired.addAll(agents);
+
+    log.info("Acquired {} agents", agents.size());
+    return agents;
   }
 
   public void releaseAll() {
@@ -86,6 +94,7 @@ public class AgentPool
                 try {
                   log.info("Releasing {}", agent);
                   agent.stop();
+                  urls.offer(agent.getJmxServiceURL());
                   acquired.remove(agent);
                 }
                 catch (Exception e) {
@@ -96,8 +105,7 @@ public class AgentPool
       );
     }
     catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      log.warn("Interrupted, ignoring...", e);
     }
   }
-
 }
