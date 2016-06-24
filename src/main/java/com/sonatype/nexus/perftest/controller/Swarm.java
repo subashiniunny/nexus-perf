@@ -41,5 +41,12 @@ public class Swarm
         "${domain}:name=success", "Count"
     );
   }
+
+  public static class Failure
+  {
+    public static final Attribute<Long> count = new Attribute<>(
+        "${domain}:name=failure", "Count"
+    );
+  }
 }
 
