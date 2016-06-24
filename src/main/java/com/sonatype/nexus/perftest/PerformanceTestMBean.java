@@ -19,19 +19,23 @@ import javax.management.ObjectName;
 public interface PerformanceTestMBean
 {
   /**
-   * Starts the performance test with given scenario and returns the {@link ObjectName}s of the swarms started in
-   * given scenario. If already running, method does nothing and returns {@code null}.
+   * Loads the performance test with given scenario and returns the {@link ObjectName}s of the swarms started in
+   * given scenario.
    *
-   * @see #start(String, Map)
+   * @see #load(String, Map)
    */
-  List<ObjectName> start(String scenario);
+  List<ObjectName> load(String scenario);
 
   /**
-   * Starts the performance test with given scenario and returns the {@link ObjectName}s of the swarms started in
-   * given scenario. If already running, method does nothing and returns {@code null}. It also may receive a map
-   * with overrides, that will override values from scenario map.
+   * Loads the performance test with given scenario and returns the {@link ObjectName}s of the swarms started in
+   * given scenario. It also may receive a map with overrides, that will override values from scenario map.
    */
-  List<ObjectName> start(String scenario, @Nullable Map<String, String> overrides);
+  List<ObjectName> load(String scenario, @Nullable Map<String, String> overrides);
+
+  /**
+   * Starts the loaded performance test.
+   */
+  void start();
 
   /**
    * Stops the performance test, returns {@code true} if it was running.
@@ -44,7 +48,8 @@ public interface PerformanceTestMBean
   boolean isRunning();
 
   /**
-   * @return a string representation of test duration using ISO-8601 seconds based representation, such as PT8H6M12.345S.
+   * @return a string representation of test duration using ISO-8601 seconds based representation, such as
+   * PT8H6M12.345S.
    */
   String getDuration();
 

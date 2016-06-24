@@ -68,26 +68,38 @@ public class Agent
     return swarms;
   }
 
-  public Agent start(final String scenario) {
-    return start(scenario, null);
+  public Agent load(final String scenario) {
+    return load(scenario, null);
   }
 
-  public Agent start(final String scenario, @Nullable Map<String, String> overrides) {
+  public Agent load(final String scenario, @Nullable Map<String, String> overrides) {
     if (controlBean.isRunning()) {
       throw new RuntimeException("Agent is currently running a scenario");
     }
     try {
-      log.info("Starting scenario {} on {}", scenario, this);
+      log.info("Loading scenario {} on {}", scenario, this);
       swarms.addAll(
-          controlBean.start(scenario, overrides).stream()
+          controlBean.load(scenario, overrides).stream()
               .map(name -> new Swarm(connection, name))
               .collect(Collectors.toList())
       );
+      return this;
+    }
+    catch (Exception e) {
+      log.debug("Could not load scenario {} on {}: {}", scenario, this, e.toString());
+      throw e;
+    }
+  }
+
+  public Agent start() {
+    try {
+      log.info("Starting {}", this);
+      controlBean.start();
       finishSignal = new CountDownLatch(1);
       return this;
     }
     catch (Exception e) {
-      log.debug("Could not start scenario {} on {}: {}", scenario, this, e.toString());
+      log.debug("Could not start {}: {}", this, e.toString());
       throw e;
     }
   }

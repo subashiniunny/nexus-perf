@@ -35,6 +35,8 @@ public class PerformanceTestMBeanImpl
 
   private PerformanceTest performanceTest;
 
+  private String scenario;
+
   private Thread performanceTestThread;
 
   private int notificationSequence;
@@ -47,15 +49,33 @@ public class PerformanceTestMBeanImpl
   }
 
   @Override
-  public List<ObjectName> start(final String scenario) {
-    return start(scenario, null);
+  public List<ObjectName> load(final String scenario) {
+    return load(scenario, null);
   }
 
   @Override
-  public synchronized List<ObjectName> start(final String scenario, @Nullable final Map<String, String> overrides) {
-    if (performanceTest == null || !performanceTestThread.isAlive()) {
+  public synchronized List<ObjectName> load(final String scenario, @Nullable final Map<String, String> overrides) {
+    if (performanceTest != null) {
+      throw new IllegalStateException("A scenario has already been loaded");
+    }
+    try {
+      this.scenario = scenario;
+      performanceTest = create(new File(scenario), overrides);
+      return performanceTest.getObjectNames();
+    }
+    catch (Exception e) {
+      log.error("Error", e);
+      throw new RuntimeException(e.getMessage());
+    }
+  }
+
+  @Override
+  public synchronized void start() {
+    if (performanceTest == null) {
+      throw new IllegalStateException("A scenario must be loaded before starting it");
+    }
+    if (performanceTestThread == null || !performanceTestThread.isAlive()) {
       try {
-        performanceTest = create(new File(scenario), overrides);
         performanceTestThread = new Thread(
             () -> {
               try {
@@ -88,14 +108,12 @@ public class PerformanceTestMBeanImpl
             "test"
         );
         performanceTestThread.start();
-        return performanceTest.getObjectNames();
       }
       catch (Exception e) {
         log.error("Error", e);
         throw new RuntimeException(e.getMessage());
       }
     }
-    return null;
   }
 
   @Override
