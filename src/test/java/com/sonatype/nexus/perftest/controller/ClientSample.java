@@ -6,16 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.sonatype.nexus.perftest.controller.GaugeTrigger.State;
-
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import static com.sonatype.nexus.perftest.controller.JMXServiceURLs.jmxServiceURL;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
 
 public class ClientSample
 {
@@ -69,8 +64,8 @@ public class ClientSample
       overrides.put("nexus.baseurl", "http://localhost:8081/nexus");
       overrides.put("test.duration", "2 MINUTES");
 
-      m01Agents.parallelStream().forEach(agent -> agent.load("maven01-1.0.4-SNAPSHOT", overrides));
-      m02Agents.parallelStream().forEach(agent -> agent.load("maven01-1.0.4-SNAPSHOT", overrides));
+      m01Agents.parallelStream().forEach(agent -> agent.load("npm01-1.0.4-SNAPSHOT", overrides));
+      m02Agents.parallelStream().forEach(agent -> agent.load("npm01-1.0.4-SNAPSHOT", overrides));
 
       m01Agents.parallelStream().forEach(Agent::start);
       m02Agents.parallelStream().forEach(Agent::start);
@@ -87,6 +82,10 @@ public class ClientSample
 
       m01Agents.parallelStream().forEach(Agent::waitToFinish);
       m02Agents.parallelStream().forEach(Agent::waitToFinish);
+
+      m01Swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
+        control.getFailures().stream().forEach(failure -> System.out.println("-------- " + failure));
+      });
 
       m01Swarms.stream().forEach(swarm -> assertThat(swarm.get(Swarm.Failure.count), is(equalTo(0L))));
       m02Swarms.stream().forEach(swarm -> assertThat(swarm.get(Swarm.Failure.count), is(equalTo(0L))));

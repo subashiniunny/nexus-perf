@@ -68,6 +68,8 @@ public class ClientSwarm
 
   private final RequestRate rate;
 
+  private final List<String> failures = new ArrayList<>();
+
   public interface ClientRequestInfo
   {
     String getSwarmName();
@@ -171,7 +173,7 @@ public class ClientSwarm
           break;
         }
         catch (Exception e) {
-          failureMessage = e.getMessage();
+          failureMessage = e.toString();
           log.warn("Unexpected exception", e);
         }
         finally {
@@ -182,6 +184,7 @@ public class ClientSwarm
           }
           else {
             failureMeter.mark();
+            failures.add(failureMessage);
             context.failure(failureMessage);
           }
         }
@@ -316,6 +319,10 @@ public class ClientSwarm
 
   public RequestRate getRate() {
     return rate;
+  }
+
+  public List<String> getFailures() {
+    return failures;
   }
 
   @Override

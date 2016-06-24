@@ -7,6 +7,8 @@
  */
 package com.sonatype.nexus.perftest;
 
+import java.util.List;
+
 import javax.management.ObjectName;
 
 /**
@@ -72,4 +74,6 @@ public interface ClientSwarmMBean
   int getWaitingCount();
 
   String getMetricsDomain();
+
+  List<String> getFailures();
 }

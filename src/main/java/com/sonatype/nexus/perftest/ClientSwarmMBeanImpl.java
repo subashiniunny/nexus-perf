@@ -7,6 +7,7 @@
  */
 package com.sonatype.nexus.perftest;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.ObjectName;
@@ -72,6 +73,11 @@ public class ClientSwarmMBeanImpl
   @Override
   public String getMetricsDomain() {
     return metricsDomain;
+  }
+
+  @Override
+  public List<String> getFailures() {
+    return clientSwarm.getFailures();
   }
 
   @Override
