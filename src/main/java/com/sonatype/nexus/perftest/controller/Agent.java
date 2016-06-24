@@ -1,6 +1,7 @@
 package com.sonatype.nexus.perftest.controller;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -33,9 +34,9 @@ public class Agent
 
   private PerformanceTestMBean controlBean;
 
-  private List<Swarm> swarms;
+  private final List<Swarm> swarms = new ArrayList<>();
 
-  private CountDownLatch finishSignal = new CountDownLatch(1);
+  private CountDownLatch finishSignal;
 
   public Agent(final JMXServiceURL jmxServiceURL) {
     this.jmxServiceURL = jmxServiceURL;
@@ -50,13 +51,15 @@ public class Agent
           AttributeChangeNotification acn = (AttributeChangeNotification) notification;
           if ("running".equals(acn.getAttributeName())
               && Boolean.FALSE.equals(acn.getNewValue()) && Boolean.TRUE.equals(acn.getOldValue())) {
-            finishSignal.countDown();
+            if (finishSignal != null) {
+              finishSignal.countDown();
+            }
           }
         }
       }, null, null);
     }
     catch (Exception e) {
-      log.error("Could not connect to {}: {}", jmxServiceURL, e.toString());
+      log.debug("Could not connect to {}: {}", jmxServiceURL, e.toString());
       throw Throwables.propagate(e);
     }
   }
@@ -70,15 +73,21 @@ public class Agent
   }
 
   public Agent start(final String scenario, @Nullable Map<String, String> overrides) {
+    if (controlBean.isRunning()) {
+      throw new RuntimeException("Agent is currently running a scenario");
+    }
     try {
       log.info("Starting scenario {} on {}", scenario, this);
-      swarms = controlBean.start(scenario, overrides).stream()
-          .map(name -> new Swarm(connection, name))
-          .collect(Collectors.toList());
+      swarms.addAll(
+          controlBean.start(scenario, overrides).stream()
+              .map(name -> new Swarm(connection, name))
+              .collect(Collectors.toList())
+      );
+      finishSignal = new CountDownLatch(1);
       return this;
     }
     catch (Exception e) {
-      log.error("Could not start scenario {} on {}: {}", scenario, this, e.toString());
+      log.debug("Could not start scenario {} on {}: {}", scenario, this, e.toString());
       throw e;
     }
   }
@@ -86,11 +95,15 @@ public class Agent
   public Agent stop() {
     try {
       log.info("Stopping {}", this);
+      swarms.clear();
       controlBean.stop();
+      if (finishSignal != null) {
+        finishSignal.countDown();
+      }
       return this;
     }
     catch (Exception e) {
-      log.error("Could not stop {}: {}", this, e.toString());
+      log.debug("Could not stop {}: {}", this, e.toString());
       throw e;
     }
   }
@@ -103,11 +116,15 @@ public class Agent
     try {
       if (timeout == null) {
         log.info("Waiting for {} to finish", this);
-        finishSignal.await();
+        if (finishSignal != null) {
+          finishSignal.await();
+        }
       }
       else {
         log.info("Waiting for {} to finish for {}", this, timeout);
-        finishSignal.await(timeout.getNano(), TimeUnit.NANOSECONDS);
+        if (finishSignal != null) {
+          finishSignal.await(timeout.getNano(), TimeUnit.NANOSECONDS);
+        }
       }
     }
     catch (InterruptedException e) {
