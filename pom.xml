@@ -18,7 +18,7 @@
 
   <groupId>io.takari.nexus</groupId>
   <artifactId>nexus-perf</artifactId>
-  <version>1.0.11</version>
+  <version>1.0.12-SNAPSHOT</version>
   <packaging>takari-jar</packaging>
 
   <licenses>
@@ -231,8 +231,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <scm>
-    <tag>nexus-perf-1.0.11</tag>
-  </scm>
 </project>
