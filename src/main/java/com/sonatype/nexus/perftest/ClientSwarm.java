@@ -298,6 +298,8 @@ public class ClientSwarm
   }
 
   public void stop() throws InterruptedException {
+    SharedMetricRegistries.remove(swarmName);
+
     for (ClientThread thread : threads) {
       for (int i = 0; i < 3 && thread.isAlive(); i++) {
         thread.interrupt();
@@ -311,7 +313,6 @@ public class ClientSwarm
         log.error("{}", sb);
       }
     }
-    SharedMetricRegistries.remove(swarmName);
   }
 
   public String getSwarmName() {
