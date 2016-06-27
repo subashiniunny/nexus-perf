@@ -123,7 +123,12 @@ public class PerformanceTest
 
       log.info("Stopping...");
       for (ClientSwarm swarm : swarms) {
-        swarm.stop();
+        try {
+          swarm.stop();
+        }
+        catch (Exception e) {
+          log.error("Error", e);
+        }
       }
       progressTickThread.interrupt();
       progressTickThread.join();
