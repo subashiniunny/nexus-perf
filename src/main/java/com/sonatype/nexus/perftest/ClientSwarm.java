@@ -116,6 +116,8 @@ public class ClientSwarm
 
     private final Map<String, Object> context = new HashMap<>();
 
+    private boolean interrupted;
+
     public ClientThread(Nexus nexus,
                         String swarmName,
                         int clientId,
@@ -169,12 +171,14 @@ public class ClientSwarm
         }
         catch (InterruptedException | InterruptedIOException e) {
           // TODO more graceful shutdown
-          log.warn(e.getMessage());
+          log.warn("Unexpected exception", e);
           break;
         }
         catch (Exception e) {
-          failureMessage = e.toString();
-          log.warn("Unexpected exception", e);
+          if (!interrupted) {
+            failureMessage = e.toString();
+            log.warn("Unexpected exception", e);
+          }
         }
         finally {
           timerContext.stop();
@@ -182,7 +186,7 @@ public class ClientSwarm
             successMeter.mark();
             context.success();
           }
-          else {
+          else if (!interrupted) {
             failureMeter.mark();
             failures.add(failureMessage);
             context.failure(failureMessage);
@@ -229,6 +233,7 @@ public class ClientSwarm
 
     @Override
     public void interrupt() {
+      interrupted = true;
       try {
         this.httpClient.close();
       }
