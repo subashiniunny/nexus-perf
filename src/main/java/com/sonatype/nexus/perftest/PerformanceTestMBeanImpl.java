@@ -118,20 +118,22 @@ public class PerformanceTestMBeanImpl
 
   @Override
   public synchronized boolean stop() {
-    if (performanceTest != null) {
-      try {
+    try {
+      if (performanceTest != null) {
         performanceTest.stop();
-        performanceTestThread.join();
         performanceTest = null;
-        performanceTestThread = null;
-        return true;
+        if (performanceTestThread != null) {
+          performanceTestThread.join();
+          performanceTestThread = null;
+          return true;
+        }
       }
-      catch (Exception e) {
-        log.error("Error", e);
-        throw new RuntimeException(e.getMessage());
-      }
+      return false;
     }
-    return false;
+    catch (Exception e) {
+      log.error("Error", e);
+      throw new RuntimeException(e.getMessage());
+    }
   }
 
   @Override
