@@ -4,7 +4,7 @@
  * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
  * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  */
-package com.sonatype.nexus.perftest.tests;
+package com.sonatype.nexus.perftest;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +19,7 @@ import com.sonatype.nexus.perftest.maven.DownloadOperation;
 import com.sonatype.nexus.perftest.maven.DownloadPaths;
 import com.sonatype.nexus.perftest.maven.HttpdLogParser;
 
-public class PrimeNexusRepoMain
+public class PrimeNexusScenario
 {
 
   public static final int DOWNLOAD_TCOUNT = 20;
