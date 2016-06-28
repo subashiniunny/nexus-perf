@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.nexus.perftest.jmx.RequestRate;
 import com.sonatype.nexus.perftest.maven.BatchDownloadsOperation;
 import com.sonatype.nexus.perftest.maven.UniqueRepositoryDeployOperation;
 import com.sonatype.nexus.perftest.paths.HttpdLogParser;

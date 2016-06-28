@@ -9,8 +9,6 @@ package com.sonatype.nexus.perftest;
 
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.nexus.perftest.jmx.RequestRate;
-
 import org.junit.Assert;
 import org.junit.Test;
 

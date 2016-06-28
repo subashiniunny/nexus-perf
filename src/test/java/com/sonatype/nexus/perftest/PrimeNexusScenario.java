@@ -9,7 +9,6 @@ package com.sonatype.nexus.perftest;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.nexus.perftest.jmx.RequestRate;
 import com.sonatype.nexus.perftest.maven.DownloadOperation;
 import com.sonatype.nexus.perftest.paths.CsvLogParser;
 import com.sonatype.nexus.perftest.paths.DownloadPaths;

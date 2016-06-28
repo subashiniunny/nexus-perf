@@ -14,6 +14,7 @@ import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import com.sonatype.nexus.perftest.ClientSwarm;
+import com.sonatype.nexus.perftest.RequestRate;
 
 /**
  * JMX endpoint for ClientSwarm.

@@ -5,7 +5,7 @@
  * Public License Version 1.0, which accompanies this distribution and is available at
  * http://www.eclipse.org/legal/epl-v10.html.
  */
-package com.sonatype.nexus.perftest.jmx;
+package com.sonatype.nexus.perftest;
 
 import java.util.Random;
 import java.util.StringTokenizer;
