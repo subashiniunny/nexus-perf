@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 
-import com.sonatype.nexus.perftest.Digests;
+import com.sonatype.nexus.perftest.operation.Digests;
 
 import com.google.common.base.Charsets;
 import de.pdark.decentxml.Document;

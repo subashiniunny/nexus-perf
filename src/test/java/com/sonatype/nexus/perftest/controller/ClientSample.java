@@ -11,9 +11,12 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 
 public class ClientSample
 {
+  private static final String DATA = "all/target/all-1.0.4-SNAPSHOT-data/";
+
   @Test
   public void sample() throws Exception {
     AgentPool pool = new AgentPool(JMXServiceURLs.of(
@@ -58,14 +61,16 @@ public class ClientSample
 
     try {
       Collection<Agent> m01Agents = pool.acquire(2);
+      assertThat(m01Agents, hasSize(2));
       Collection<Agent> m02Agents = pool.acquire(1);
+      assertThat(m02Agents, hasSize(1));
 
       Map<String, String> overrides = new HashMap<>();
       overrides.put("nexus.baseurl", "http://localhost:8081/nexus");
-      overrides.put("test.duration", "2 MINUTES");
+      overrides.put("test.duration", "20 SECONDS");
 
-      m01Agents.parallelStream().forEach(agent -> agent.load("npm01-1.0.4-SNAPSHOT", overrides));
-      m02Agents.parallelStream().forEach(agent -> agent.load("npm01-1.0.4-SNAPSHOT", overrides));
+      m01Agents.parallelStream().forEach(agent -> agent.load(DATA + "maven02-1.0.4-SNAPSHOT", overrides));
+      m02Agents.parallelStream().forEach(agent -> agent.load(DATA + "maven01-1.0.4-SNAPSHOT", overrides));
 
       m01Agents.parallelStream().forEach(Agent::start);
       m02Agents.parallelStream().forEach(Agent::start);

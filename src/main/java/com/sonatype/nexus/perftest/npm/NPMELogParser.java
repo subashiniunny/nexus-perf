@@ -12,9 +12,10 @@ import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
+import com.sonatype.nexus.perftest.paths.DownloadPaths;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sonatype.nexus.perftest.maven.DownloadPaths;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

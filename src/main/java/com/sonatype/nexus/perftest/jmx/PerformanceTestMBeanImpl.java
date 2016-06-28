@@ -5,7 +5,7 @@
  * Public License Version 1.0, which accompanies this distribution and is available at
  * http://www.eclipse.org/legal/epl-v10.html.
  */
-package com.sonatype.nexus.perftest;
+package com.sonatype.nexus.perftest.jmx;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
@@ -18,6 +18,8 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 import javax.management.StandardEmitterMBean;
+
+import com.sonatype.nexus.perftest.PerformanceTest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

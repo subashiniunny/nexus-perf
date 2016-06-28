@@ -58,7 +58,7 @@ public class AgentPool
             }
           }
           catch (Exception e) {
-            // ignore
+            log.warn("Failed to acquire {} due to {}", jmxServiceURL, e.toString());
           }
         }
         failed.add(jmxServiceURL);

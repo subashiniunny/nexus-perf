@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import com.sonatype.nexus.perftest.Digests;
+import com.sonatype.nexus.perftest.operation.Digests;
 
 import com.google.common.io.CountingInputStream;
 import org.apache.http.HttpEntity;

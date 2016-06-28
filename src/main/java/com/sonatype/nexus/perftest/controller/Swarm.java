@@ -4,7 +4,7 @@ import javax.management.JMX;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
-import com.sonatype.nexus.perftest.ClientSwarmMBean;
+import com.sonatype.nexus.perftest.jmx.ClientSwarmMBean;
 
 public class Swarm
     extends Client

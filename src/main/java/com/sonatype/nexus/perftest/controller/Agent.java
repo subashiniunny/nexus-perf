@@ -17,8 +17,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
-import com.sonatype.nexus.perftest.PerformanceTest;
-import com.sonatype.nexus.perftest.PerformanceTestMBean;
+import com.sonatype.nexus.perftest.jmx.PerformanceTestMBean;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -44,7 +43,7 @@ public class Agent
       log.info("Connecting to {}...", jmxServiceURL);
       JMXConnector connector = JMXConnectorFactory.connect(jmxServiceURL, null);
       connection = connector.getMBeanServerConnection();
-      ObjectName controlBeanName = new ObjectName(PerformanceTest.class.getPackage().getName(), "name", "control");
+      ObjectName controlBeanName = new ObjectName(PerformanceTestMBean.class.getPackage().getName(), "name", "control");
       controlBean = JMX.newMBeanProxy(connection, controlBeanName, PerformanceTestMBean.class, false);
       connection.addNotificationListener(controlBeanName, (notification, handback) -> {
         if (notification instanceof AttributeChangeNotification) {

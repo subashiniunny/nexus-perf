@@ -8,10 +8,9 @@ package com.sonatype.nexus.perftest;
 
 import java.io.IOException;
 
-import com.sonatype.nexus.perftest.AbstractNexusOperation;
 import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
 import com.sonatype.nexus.perftest.ClientSwarm.Operation;
-import com.sonatype.nexus.perftest.Nexus;
+import com.sonatype.nexus.perftest.operation.AbstractNexusOperation;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;

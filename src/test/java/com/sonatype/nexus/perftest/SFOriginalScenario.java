@@ -10,14 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.nexus.perftest.ClientSwarm;
-import com.sonatype.nexus.perftest.Metric;
-import com.sonatype.nexus.perftest.Nexus;
-import com.sonatype.nexus.perftest.ProgressTickThread;
-import com.sonatype.nexus.perftest.RequestRate;
+import com.sonatype.nexus.perftest.jmx.RequestRate;
 import com.sonatype.nexus.perftest.maven.BatchDownloadsOperation;
-import com.sonatype.nexus.perftest.maven.HttpdLogParser;
 import com.sonatype.nexus.perftest.maven.UniqueRepositoryDeployOperation;
+import com.sonatype.nexus.perftest.paths.HttpdLogParser;
 
 public class SFOriginalScenario
 {

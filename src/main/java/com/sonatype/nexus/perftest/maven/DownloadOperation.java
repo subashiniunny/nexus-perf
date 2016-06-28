@@ -6,10 +6,11 @@
  */
 package com.sonatype.nexus.perftest.maven;
 
-import com.sonatype.nexus.perftest.AbstractNexusOperation;
 import com.sonatype.nexus.perftest.ClientSwarm.ClientRequestInfo;
 import com.sonatype.nexus.perftest.ClientSwarm.Operation;
 import com.sonatype.nexus.perftest.Nexus;
+import com.sonatype.nexus.perftest.operation.AbstractNexusOperation;
+import com.sonatype.nexus.perftest.paths.DownloadPaths;
 
 import com.codahale.metrics.Meter;
 import com.fasterxml.jackson.annotation.JacksonInject;

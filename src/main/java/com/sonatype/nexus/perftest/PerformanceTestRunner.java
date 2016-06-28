@@ -12,6 +12,8 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.Nullable;
 
+import com.sonatype.nexus.perftest.jmx.PerformanceTestMBeanImpl;
+
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.InjectableValues;
