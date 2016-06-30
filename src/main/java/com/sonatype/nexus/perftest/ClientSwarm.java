@@ -177,6 +177,9 @@ public class ClientSwarm
         catch (Exception e) {
           if (!interrupted) {
             failureMessage = e.toString();
+            if (failureMessage == null) {
+              failureMessage = e.getClass().getName();
+            }
             log.warn("Unexpected exception", e);
           }
         }
