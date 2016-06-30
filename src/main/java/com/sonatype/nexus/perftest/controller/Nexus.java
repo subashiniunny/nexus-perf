@@ -3,6 +3,8 @@ package com.sonatype.nexus.perftest.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -36,6 +38,17 @@ public class Nexus
     this(serviceURL, null, null);
   }
 
+  public static class ObjectNames
+  {
+    public static ObjectName healthCheckNotifier() {
+      try {
+        return new ObjectName("io.takari.nexus.healthcheck.jmx:name=JmxHealthCheckNotifierMBeanImpl");
+      }
+      catch (MalformedObjectNameException e) {
+        throw Throwables.propagate(e);
+      }
+    }
+  }
 
   public static class Requests
   {
