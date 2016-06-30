@@ -83,8 +83,8 @@ public class ClientSample
 
       List<Swarm> swarms = agents.stream().map(Agent::getSwarms).flatMap(Collection::stream).collect(toList());
       swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
-        control.setRateSleepMillis(1);
-        control.setRateSleepMillis(10);
+        control.setRateMultiplier(1);
+        control.setRateSleepMillis(100);
       });
 
       agents.parallelStream().forEach(Agent::waitToFinish);
