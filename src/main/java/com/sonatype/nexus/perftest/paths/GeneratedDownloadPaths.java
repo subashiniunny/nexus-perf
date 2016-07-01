@@ -23,8 +23,7 @@ public class GeneratedDownloadPaths
   private final String prefix;
 
   @JsonCreator
-  public GeneratedDownloadPaths(@JsonProperty(value = "prefix") String prefix)
-  {
+  public GeneratedDownloadPaths(@JsonProperty(value = "prefix", required = true) String prefix) {
     this.prefix = prefix;
   }
 

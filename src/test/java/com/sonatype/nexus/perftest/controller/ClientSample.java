@@ -28,7 +28,7 @@ public class ClientSample
       "localhost:5003"
   );
 
-  private static final String DATA = "all/target/all-1.0.4-SNAPSHOT-data/";
+  private static final String DATA = "all/target/all-1.0.5-SNAPSHOT-data/";
 
   @Test
   public void multipleScenarios() throws Exception {
@@ -91,17 +91,17 @@ public class ClientSample
 
       Map<String, String> overrides = new HashMap<>();
       overrides.put("nexus.baseurl", "http://192.168.1.99:8081/nexus");
-      overrides.put("test.duration", "2 MINUTES");
-      //overrides.put("test.duration", "20 SECONDS");
+      //overrides.put("test.duration", "2 MINUTES");
+      overrides.put("test.duration", "20 SECONDS");
 
-      agents.parallelStream().forEach(agent -> agent.load(DATA + "npm01-1.0.4-SNAPSHOT", overrides));
+      agents.parallelStream().forEach(agent -> agent.load(DATA + "npm01-1.0.5-SNAPSHOT", overrides));
       agents.parallelStream().forEach(Agent::start);
 
       List<Swarm> swarms = agents.stream().map(Agent::getSwarms).flatMap(Collection::stream).collect(toList());
-      swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
-        control.setRateMultiplier(10);
-        control.setRateSleepMillis(5);
-      });
+      //swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
+      //  control.setRateMultiplier(10);
+      //  control.setRateSleepMillis(5);
+      //});
 
       agents.parallelStream().forEach(Agent::waitToFinish);
       swarms.parallelStream().map(Swarm::getControl).forEach(control -> {

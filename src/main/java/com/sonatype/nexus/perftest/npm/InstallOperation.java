@@ -42,7 +42,7 @@ public class InstallOperation
   public void perform(ClientRequestInfo requestInfo) throws Exception {
     Path tempDir = null;
     try {
-      Package npmPackage = packages.next();
+      Package npmPackage = packages.getNext();
       tempDir = Files.createTempDirectory("nexus-perf-");
       Path packageDir = Files.createDirectories(tempDir.resolve(npmPackage.getName()));
       NpmClient npm = NpmClient.builder()

@@ -11,6 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class CircularIterator<T>
 {
   private final List<T> elements;
@@ -18,14 +20,19 @@ public class CircularIterator<T>
   private final AtomicInteger nextIndex = new AtomicInteger(0);
 
   public CircularIterator(final Collection<T> elements) {
+    checkNotNull(elements);
     this.elements = new LinkedList<T>(elements);
   }
 
-  public T next() {
+  public T getNext() {
     return elements.get(nextIndex.getAndIncrement() % elements.size());
   }
 
   public Iterable<T> getAll() {
     return elements;
+  }
+
+  public int getSize() {
+    return elements.size();
   }
 }

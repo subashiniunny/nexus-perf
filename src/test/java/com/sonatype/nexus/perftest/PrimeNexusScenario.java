@@ -16,9 +16,6 @@ import com.sonatype.nexus.perftest.paths.HttpdLogParser;
 
 public class PrimeNexusScenario
 {
-
-  public static final int DOWNLOAD_TCOUNT = 20;
-
   public static void main(String[] args) throws Exception {
     Nexus nexus = new Nexus();
 
@@ -30,13 +27,12 @@ public class PrimeNexusScenario
       paths = new CsvLogParser(new File(data));
     }
     else {
-      paths = new HttpdLogParser(new File(data));
+      paths = new HttpdLogParser(new File(data), "/content/groups/public/");
     }
-
 
     final DownloadOperation download = new DownloadOperation(nexus, "public", paths);
     final RequestRate downloadRate = new RequestRate(5, TimeUnit.SECONDS);
-    final ClientSwarm downloaders = new ClientSwarm(new Nexus(), "download", download, null, downloadRate, DOWNLOAD_TCOUNT);
+    final ClientSwarm downloaders = new ClientSwarm(new Nexus(), "download", download, null, downloadRate, 20);
     final Metric downloadMetric = downloaders.getMetric();
 
     downloaders.start();

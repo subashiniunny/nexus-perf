@@ -16,11 +16,6 @@ import com.sonatype.nexus.perftest.paths.HttpdLogParser;
 
 public class SFOriginalScenario
 {
-
-  public final static int DOWNLOAD_TCOUNT = 1000;
-
-  public final static int DEPLOY_TCOUNT = 40;
-
   public static void main(String[] args) throws InterruptedException, IOException {
 
     // target is ~2000 download requests per day and ~400 deploy requests per day
@@ -31,17 +26,19 @@ public class SFOriginalScenario
     final String basedir = System.getProperty("perftest.jars");
 
     // dev env provisioning swamp
-    HttpdLogParser paths = new HttpdLogParser(new File("maven-3.1-build-artifact-access.log"));
+    HttpdLogParser paths = new HttpdLogParser(
+        new File("maven-3.1-build-artifact-access.log"), "/content/groups/public/"
+    );
     BatchDownloadsOperation provision = new BatchDownloadsOperation(nexus, "public", paths);
     final RequestRate provisionRate = new RequestRate(5 * 2000, TimeUnit.DAYS);
-    final ClientSwarm provisioners = new ClientSwarm(new Nexus(), "provision", provision, null, provisionRate, DOWNLOAD_TCOUNT);
+    final ClientSwarm provisioners = new ClientSwarm(new Nexus(), "provision", provision, null, provisionRate, 1000);
     final Metric provisionMetric = provisioners.getMetric();
 
     // deploy artifacts to unique repositories
     UniqueRepositoryDeployOperation deploy =
         new UniqueRepositoryDeployOperation(nexus, new File(basedir), new File("pom.xml"), true, false);
     final RequestRate deployRate = new RequestRate(5 * 400, TimeUnit.DAYS);
-    final ClientSwarm deployers = new ClientSwarm(new Nexus(), "deploy", deploy, null, deployRate, DEPLOY_TCOUNT);
+    final ClientSwarm deployers = new ClientSwarm(new Nexus(), "deploy", deploy, null, deployRate, 40);
     final Metric deployMetric = deployers.getMetric();
 
     provisioners.start();
