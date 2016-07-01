@@ -4,12 +4,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.management.remote.JMXServiceURL;
 
+import com.sonatype.nexus.perftest.controller.Nexus.QoS;
+
 import org.junit.Test;
 
+import static com.sonatype.nexus.perftest.controller.JMXServiceURLs.jmxServiceURL;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -20,9 +22,9 @@ public class ClientSample
 {
   private static final Collection<JMXServiceURL> URLS = JMXServiceURLs.of(
       "192.168.1.6:5001",
-      "192.168.1.3:5001",
-      //"localhost:5001",
-      //"localhost:5002",
+      //"192.168.1.3:5001",
+      "localhost:5001",
+      "localhost:5002",
       "localhost:5003"
   );
 
@@ -71,11 +73,25 @@ public class ClientSample
     AgentPool pool = new AgentPool(URLS);
 
     try {
+      Nexus nexus = new Nexus(jmxServiceURL("192.168.1.99:1099"));
+      nexus.addTrigger(new GaugeTrigger<>(Nexus.QoS.Rejects.count,
+          (state, value) -> {
+            System.out.println("!!!!!!!!!!!!!!!!! Rejects " + value + " " + state);
+          }).setHighThreshold(1L));
+      nexus.addTrigger(new GaugeTrigger<>(Nexus.QoS.waitingForPermits,
+          (state, value) -> {
+            System.out.println("!!!!!!!!!!!!!!!!! Waits: " + value + " " + state);
+          }).setHighThreshold(1));
+      nexus.addTrigger(new GaugeTrigger<>(Nexus.QoS.queueSize(0),
+          (state, value) -> {
+            System.out.println("!!!!!!!!!!!!!!!!! Queue 0: " + value + " " + state);
+          }).setHighThreshold(1));
+
       Collection<Agent> agents = pool.acquireAll();
 
       Map<String, String> overrides = new HashMap<>();
       overrides.put("nexus.baseurl", "http://192.168.1.99:8081/nexus");
-      overrides.put("test.duration", "5 MINUTES");
+      overrides.put("test.duration", "2 MINUTES");
       //overrides.put("test.duration", "20 SECONDS");
 
       agents.parallelStream().forEach(agent -> agent.load(DATA + "npm01-1.0.4-SNAPSHOT", overrides));
@@ -83,8 +99,8 @@ public class ClientSample
 
       List<Swarm> swarms = agents.stream().map(Agent::getSwarms).flatMap(Collection::stream).collect(toList());
       swarms.parallelStream().map(Swarm::getControl).forEach(control -> {
-        control.setRateMultiplier(1);
-        control.setRateSleepMillis(100);
+        control.setRateMultiplier(10);
+        control.setRateSleepMillis(5);
       });
 
       agents.parallelStream().forEach(Agent::waitToFinish);

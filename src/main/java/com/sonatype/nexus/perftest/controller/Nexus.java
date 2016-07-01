@@ -87,5 +87,32 @@ public class Nexus
     );
   }
 
+  public static class QoS
+  {
+    public static class Rejects
+    {
+      public static final Attribute<Long> count = new Attribute<>(
+          "\"io.takari.nexus.jetty.qos\":type=\"QoSFilter\",name=\"rejected\"", "Count"
+      );
+
+      public static final Attribute<Long> meanRate = new Attribute<>(
+          "\"io.takari.nexus.jetty.qos\":type=\"QoSFilter\",name=\"rejected\"", "MeanRate"
+      );
+    }
+
+    public static final Attribute<Integer> availablePermits = new Attribute<>(
+        "\"io.takari.nexus.jetty.qos\":type=\"QoSFilter\",name=\"availablePermits\"", "Value"
+    );
+
+    public static final Attribute<Integer> waitingForPermits = new Attribute<>(
+        "\"io.takari.nexus.jetty.qos\":type=\"QoSFilter\",name=\"waitingForPermits\"", "Value"
+    );
+
+    public static Attribute<Integer> queueSize(final int priority) {
+      return new Attribute<>(
+          String.format("\"io.takari.nexus.jetty.qos\":type=\"QoSFilter\",name=\"P%03d-Queued\"", priority), "Value"
+      );
+    }
+  }
 }
 
