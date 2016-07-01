@@ -183,6 +183,13 @@
       <artifactId>jackson-dataformat-xml</artifactId>
       <version>${jackson.version}</version>
     </dependency>
+
+    <!-- npm to execute os commands-->
+    <dependency>
+      <groupId>io.airlift</groupId>
+      <artifactId>command</artifactId>
+      <version>0.2</version>
+    </dependency>
   </dependencies>
 
   <prerequisites>
