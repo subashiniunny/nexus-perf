@@ -55,6 +55,12 @@ public class Nexus
     public static final Attribute<Long> count = new Attribute<>(
         "\"com.yammer.metrics.web\":type=\"WebappMetricsFilter\",name=\"requests\"", "Count"
     );
+    public static final Attribute<Long> mean = new Attribute<>(
+        "\"com.yammer.metrics.web\":type=\"WebappMetricsFilter\",name=\"requests\"", "Mean"
+    );
+    public static final Attribute<Long> oneMinuteRate = new Attribute<>(
+        "\"com.yammer.metrics.web\":type=\"WebappMetricsFilter\",name=\"requests\"", "OneMinuteRate"
+    );
   }
 
   public static class QueuedThreadPool
