@@ -120,5 +120,12 @@ public class Nexus
       );
     }
   }
+
+  public static class HttpClient
+  {
+    public static final Attribute<Integer> pendingConnections = new Attribute<>(
+        "org.sonatype.nexus.httpclient:name=PoolingHttpClientConnectionManager", "Pending"
+    );
+  }
 }
 
