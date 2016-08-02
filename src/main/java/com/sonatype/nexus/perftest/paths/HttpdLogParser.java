@@ -60,23 +60,6 @@ public class HttpdLogParser
         }
       }
     }
-<<<<<<< HEAD:src/main/java/com/sonatype/nexus/perftest/maven/HttpdLogParser.java
-    this.paths = Collections.unmodifiableList(paths);
-  }
-
-  @Override
-  public String getNext() {
-    if (paths != null && paths.size() > 0){
-      return paths.get(nextIndex.getAndIncrement() % paths.size());
-    }
-    return null;
-  }
-
-  @Override
-  public Iterable<String> getAll() {
-    return paths;
-=======
     return Collections.unmodifiableList(paths);
->>>>>>> takari/master:src/main/java/com/sonatype/nexus/perftest/paths/HttpdLogParser.java
   }
 }
