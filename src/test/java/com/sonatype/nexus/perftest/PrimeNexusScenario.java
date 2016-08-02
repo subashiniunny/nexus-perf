@@ -4,26 +4,18 @@
  * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
  * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  */
-package com.sonatype.nexus.perftest.tests;
+package com.sonatype.nexus.perftest;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.nexus.perftest.ClientSwarm;
-import com.sonatype.nexus.perftest.Metric;
-import com.sonatype.nexus.perftest.Nexus;
-import com.sonatype.nexus.perftest.ProgressTickThread;
-import com.sonatype.nexus.perftest.RequestRate;
-import com.sonatype.nexus.perftest.maven.CsvLogParser;
 import com.sonatype.nexus.perftest.maven.DownloadOperation;
-import com.sonatype.nexus.perftest.maven.DownloadPaths;
-import com.sonatype.nexus.perftest.maven.HttpdLogParser;
+import com.sonatype.nexus.perftest.paths.CsvLogParser;
+import com.sonatype.nexus.perftest.paths.DownloadPaths;
+import com.sonatype.nexus.perftest.paths.HttpdLogParser;
 
-public class PrimeNexusRepoMain
+public class PrimeNexusScenario
 {
-
-  public static final int DOWNLOAD_TCOUNT = 20;
-
   public static void main(String[] args) throws Exception {
     Nexus nexus = new Nexus();
 
@@ -35,13 +27,12 @@ public class PrimeNexusRepoMain
       paths = new CsvLogParser(new File(data));
     }
     else {
-      paths = new HttpdLogParser(new File(data));
+      paths = new HttpdLogParser(new File(data), "/content/groups/public/");
     }
-
 
     final DownloadOperation download = new DownloadOperation(nexus, "public", paths);
     final RequestRate downloadRate = new RequestRate(5, TimeUnit.SECONDS);
-    final ClientSwarm downloaders = new ClientSwarm(new Nexus(), "download", download, null, downloadRate, DOWNLOAD_TCOUNT);
+    final ClientSwarm downloaders = new ClientSwarm(new Nexus(), "download", download, null, downloadRate, 20);
     final Metric downloadMetric = downloaders.getMetric();
 
     downloaders.start();

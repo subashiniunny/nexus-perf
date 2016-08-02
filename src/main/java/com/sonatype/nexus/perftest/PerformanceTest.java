@@ -21,16 +21,15 @@ import javax.management.ObjectName;
 import com.sonatype.nexus.perftest.db.PerformanceMetricDescriptor;
 import com.sonatype.nexus.perftest.db.TestExecution;
 import com.sonatype.nexus.perftest.db.TestExecutions;
+import com.sonatype.nexus.perftest.jmx.ClientSwarmMBeanImpl;
 
 import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.ObjectNameFactory;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +50,7 @@ public class PerformanceTest
 
   private final String name;
 
-  private final Duration duration;
+  private Duration duration;
 
   private final Collection<NexusConfigurator> configurators;
 
@@ -123,7 +122,12 @@ public class PerformanceTest
 
       log.info("Stopping...");
       for (ClientSwarm swarm : swarms) {
-        swarm.stop();
+        try {
+          swarm.stop();
+        }
+        catch (Exception e) {
+          log.error("Error", e);
+        }
       }
       progressTickThread.interrupt();
       progressTickThread.join();
@@ -196,6 +200,14 @@ public class PerformanceTest
 
   public List<ObjectName> getObjectNames() {
     return objectNames;
+  }
+
+  public Duration getDuration() {
+    return duration;
+  }
+
+  public void setDuration(final Duration duration) {
+    this.duration = duration;
   }
 
   @Override

@@ -5,7 +5,7 @@
  * Public License Version 1.0, which accompanies this distribution and is available at
  * http://www.eclipse.org/legal/epl-v10.html.
  */
-package com.sonatype.nexus.perftest;
+package com.sonatype.nexus.perftest.jmx;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
@@ -18,6 +18,8 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 import javax.management.StandardEmitterMBean;
+
+import com.sonatype.nexus.perftest.PerformanceTest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,8 @@ public class PerformanceTestMBeanImpl
 
   private PerformanceTest performanceTest;
 
+  private String scenario;
+
   private Thread performanceTestThread;
 
   private int notificationSequence;
@@ -47,15 +51,33 @@ public class PerformanceTestMBeanImpl
   }
 
   @Override
-  public List<ObjectName> start(final String scenario) {
-    return start(scenario, null);
+  public List<ObjectName> load(final String scenario) {
+    return load(scenario, null);
   }
 
   @Override
-  public synchronized List<ObjectName> start(final String scenario, @Nullable final Map<String, String> overrides) {
-    if (performanceTest == null || !performanceTestThread.isAlive()) {
+  public synchronized List<ObjectName> load(final String scenario, @Nullable final Map<String, String> overrides) {
+    if (performanceTest != null) {
+      throw new IllegalStateException("A scenario has already been loaded");
+    }
+    try {
+      this.scenario = scenario;
+      performanceTest = create(new File(scenario), overrides);
+      return performanceTest.getObjectNames();
+    }
+    catch (Exception e) {
+      log.error("Error", e);
+      throw new RuntimeException(e.getMessage());
+    }
+  }
+
+  @Override
+  public synchronized void start() {
+    if (performanceTest == null) {
+      throw new IllegalStateException("A scenario must be loaded before starting it");
+    }
+    if (performanceTestThread == null || !performanceTestThread.isAlive()) {
       try {
-        performanceTest = create(new File(scenario), overrides);
         performanceTestThread = new Thread(
             () -> {
               try {
@@ -88,32 +110,32 @@ public class PerformanceTestMBeanImpl
             "test"
         );
         performanceTestThread.start();
-        return performanceTest.getObjectNames();
       }
       catch (Exception e) {
         log.error("Error", e);
         throw new RuntimeException(e.getMessage());
       }
     }
-    return null;
   }
 
   @Override
   public synchronized boolean stop() {
-    if (performanceTest != null) {
-      try {
+    try {
+      if (performanceTest != null) {
         performanceTest.stop();
-        performanceTestThread.join();
         performanceTest = null;
-        performanceTestThread = null;
-        return true;
+        if (performanceTestThread != null) {
+          performanceTestThread.join();
+          performanceTestThread = null;
+          return true;
+        }
       }
-      catch (Exception e) {
-        log.error("Error", e);
-        throw new RuntimeException(e.getMessage());
-      }
+      return false;
     }
-    return false;
+    catch (Exception e) {
+      log.error("Error", e);
+      throw new RuntimeException(e.getMessage());
+    }
   }
 
   @Override
@@ -130,6 +152,14 @@ public class PerformanceTestMBeanImpl
   @Override
   public boolean isRunning() {
     return performanceTestThread != null && performanceTestThread.isAlive();
+  }
+
+  @Override
+  public String getDuration() {
+    if (performanceTest == null) {
+      return null;
+    }
+    return java.time.Duration.ofMillis(performanceTest.getDuration().toMillis()).toString();
   }
 
   @Override

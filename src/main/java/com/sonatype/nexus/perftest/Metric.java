@@ -48,7 +48,7 @@ public class Metric
     this.name = name;
   }
 
-  Context time() {
+  public Context time() {
     outstanding.incrementAndGet();
     return new Context();
   }

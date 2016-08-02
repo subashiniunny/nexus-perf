@@ -3,9 +3,9 @@ package com.sonatype.nexus.perftest.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sonatype.nexus.perftest.AbstractNexusOperation;
 import com.sonatype.nexus.perftest.Nexus;
 import com.sonatype.nexus.perftest.PerformanceTest.NexusConfigurator;
+import com.sonatype.nexus.perftest.operation.AbstractNexusOperation;
 
 import org.sonatype.nexus.client.core.subsystem.repository.GroupRepository;
 import org.sonatype.nexus.client.core.subsystem.repository.HostedRepository;

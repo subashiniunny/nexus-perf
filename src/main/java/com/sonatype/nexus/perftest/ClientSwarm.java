@@ -68,6 +68,8 @@ public class ClientSwarm
 
   private final RequestRate rate;
 
+  private final List<String> failures = new ArrayList<>();
+
   public interface ClientRequestInfo
   {
     String getSwarmName();
@@ -113,6 +115,8 @@ public class ClientSwarm
     private int requestId;
 
     private final Map<String, Object> context = new HashMap<>();
+
+    private boolean interrupted;
 
     public ClientThread(Nexus nexus,
                         String swarmName,
@@ -167,12 +171,17 @@ public class ClientSwarm
         }
         catch (InterruptedException | InterruptedIOException e) {
           // TODO more graceful shutdown
-          log.warn(e.getMessage());
+          log.warn("Unexpected exception", e);
           break;
         }
         catch (Exception e) {
-          failureMessage = e.getMessage();
-          log.warn("Unexpected exception", e);
+          if (!interrupted) {
+            failureMessage = e.toString();
+            if (failureMessage == null) {
+              failureMessage = e.getClass().getName();
+            }
+            log.warn("Unexpected exception", e);
+          }
         }
         finally {
           timerContext.stop();
@@ -180,8 +189,9 @@ public class ClientSwarm
             successMeter.mark();
             context.success();
           }
-          else {
+          else if (!interrupted) {
             failureMeter.mark();
+            failures.add(failureMessage);
             context.failure(failureMessage);
           }
         }
@@ -226,6 +236,7 @@ public class ClientSwarm
 
     @Override
     public void interrupt() {
+      interrupted = true;
       try {
         this.httpClient.close();
       }
@@ -267,6 +278,7 @@ public class ClientSwarm
             .build();
       }
     };
+    SharedMetricRegistries.remove(name);
     SharedMetricRegistries.getOrCreate(name).registerAll(metricSet);
 
     swarmName = name;
@@ -290,6 +302,8 @@ public class ClientSwarm
   }
 
   public void stop() throws InterruptedException {
+    SharedMetricRegistries.remove(swarmName);
+
     for (ClientThread thread : threads) {
       for (int i = 0; i < 3 && thread.isAlive(); i++) {
         thread.interrupt();
@@ -303,7 +317,6 @@ public class ClientSwarm
         log.error("{}", sb);
       }
     }
-    SharedMetricRegistries.remove(swarmName);
   }
 
   public String getSwarmName() {
@@ -316,6 +329,10 @@ public class ClientSwarm
 
   public RequestRate getRate() {
     return rate;
+  }
+
+  public List<String> getFailures() {
+    return failures;
   }
 
   @Override

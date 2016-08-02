@@ -12,6 +12,8 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.Nullable;
 
+import com.sonatype.nexus.perftest.jmx.PerformanceTestMBeanImpl;
+
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.InjectableValues;
@@ -49,7 +51,9 @@ public class PerformanceTestRunner
     }
   }
 
-  public static PerformanceTest create(final File dataDirectory, @Nullable final Map<String, String> overrides) throws Exception {
+  public static PerformanceTest create(final File dataDirectory, @Nullable final Map<String, String> overrides)
+      throws Exception
+  {
     checkArgument(dataDirectory.isDirectory(), "Not a directory: %s", dataDirectory);
     Context context = new Context(dataDirectory, overrides);
     final Nexus nexus = new Nexus();
@@ -72,6 +76,13 @@ public class PerformanceTestRunner
       }
     });
     log.info("Using scenario {}", context.getScenario());
-    return mapper.readValue(context.getScenario(), PerformanceTest.class);
+    PerformanceTest performanceTest = mapper.readValue(context.getScenario(), PerformanceTest.class);
+    if (overrides != null) {
+      String duration = overrides.get("test.duration");
+      if (duration != null) {
+        performanceTest.setDuration(new Duration(duration));
+      }
+    }
+    return performanceTest;
   }
 }

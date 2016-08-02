@@ -4,10 +4,10 @@ import javax.management.JMX;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
-import com.sonatype.nexus.perftest.ClientSwarmMBean;
+import com.sonatype.nexus.perftest.jmx.ClientSwarmMBean;
 
 public class Swarm
-    extends AttributeSource
+    extends Client
 {
   private final ObjectName objectName;
 
@@ -39,6 +39,13 @@ public class Swarm
   {
     public static final Attribute<Long> count = new Attribute<>(
         "${domain}:name=success", "Count"
+    );
+  }
+
+  public static class Failure
+  {
+    public static final Attribute<Long> count = new Attribute<>(
+        "${domain}:name=failure", "Count"
     );
   }
 }

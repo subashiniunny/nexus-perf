@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import com.sonatype.nexus.perftest.Digests;
+import com.sonatype.nexus.perftest.operation.Digests;
 
 import com.google.common.io.CountingInputStream;
 import org.apache.http.HttpEntity;
@@ -58,12 +58,20 @@ public class DownloadAction
   }
 
   public long download(HttpClient httpClient, String path) throws IOException {
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> takari/master
     String pref = "/nexus/";
     if (path != null && path.startsWith(pref)){
       path = path.substring(pref.length());
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> takari/master
     final String url = baseUrl.endsWith("/") ? baseUrl + path : baseUrl + "/" + path;
     final HttpGet httpGet = new HttpGet(url);
     final HttpResponse response = httpClient.execute(httpGet);

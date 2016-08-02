@@ -12,10 +12,10 @@ $ docker build --rm --tag takari/nexus-perf dockerfile/
 
 ## To run
 
-From root execute command:
+Execute command:
 
 ```
-docker run -d --name nexus-perf1 takari/nexus-perf:latest
+$ docker run -d -p 5000:5000 --env NEXUS_PERF_CLIENT_JMX_HOST=<IP/hostname of docker machine> --name nexus-perf1 takari/nexus-perf:latest
 ```
 
 ## OSX loops

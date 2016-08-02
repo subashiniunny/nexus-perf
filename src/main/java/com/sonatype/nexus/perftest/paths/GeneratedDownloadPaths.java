@@ -4,7 +4,7 @@
  * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
  * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  */
-package com.sonatype.nexus.perftest.maven;
+package com.sonatype.nexus.perftest.paths;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,8 +23,7 @@ public class GeneratedDownloadPaths
   private final String prefix;
 
   @JsonCreator
-  public GeneratedDownloadPaths(@JsonProperty(value = "prefix") String prefix)
-  {
+  public GeneratedDownloadPaths(@JsonProperty(value = "prefix", required = true) String prefix) {
     this.prefix = prefix;
   }
 

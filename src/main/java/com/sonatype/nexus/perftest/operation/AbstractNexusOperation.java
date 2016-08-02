@@ -5,11 +5,13 @@
  * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  */
 
-package com.sonatype.nexus.perftest;
+package com.sonatype.nexus.perftest.operation;
 
 import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.sonatype.nexus.perftest.Nexus;
 
 import org.sonatype.nexus.client.core.NexusClient;
 import org.sonatype.nexus.client.core.spi.SubsystemFactory;

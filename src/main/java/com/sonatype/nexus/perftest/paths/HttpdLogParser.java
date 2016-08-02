@@ -4,7 +4,7 @@
  * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
  * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  */
-package com.sonatype.nexus.perftest.maven;
+package com.sonatype.nexus.perftest.paths;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,28 +18,27 @@ import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
+import com.sonatype.nexus.perftest.operation.CircularIterator;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public class HttpdLogParser
+    extends CircularIterator<String>
     implements DownloadPaths
 {
-
-  private static final String PREFIX = "/content/groups/public/";
-
-  // ossrh ssl public repo access log for 2013-08-01 contains 214895 paths 15458118 chars in total
-  // this fits in ~30M of heap, so heap should not be a problem for any meaningful test.
-  private final List<String> paths;
-
-  private final AtomicInteger nextIndex = new AtomicInteger(0);
-
-  public HttpdLogParser(File logfile) throws IOException {
-    this(logfile, PREFIX);
+  @JsonCreator
+  public HttpdLogParser(final @JsonProperty(value = "logfile", required = true) File logfile,
+                        final @JsonProperty(value = "prefix") String prefix)
+      throws IOException
+  {
+    super(parse(logfile, prefix));
+    checkArgument(getSize() > 0, "No paths loaded");
   }
 
-  @JsonCreator
-  public HttpdLogParser(@JsonProperty("logfile") File logfile, @JsonProperty(value = "prefix") String prefix)
-      throws IOException
+  private static List<String> parse(final File logfile, final String prefix) throws IOException
   {
     ArrayList<String> paths = new ArrayList<>();
     try (BufferedReader br =
@@ -61,6 +60,7 @@ public class HttpdLogParser
         }
       }
     }
+<<<<<<< HEAD:src/main/java/com/sonatype/nexus/perftest/maven/HttpdLogParser.java
     this.paths = Collections.unmodifiableList(paths);
   }
 
@@ -75,5 +75,8 @@ public class HttpdLogParser
   @Override
   public Iterable<String> getAll() {
     return paths;
+=======
+    return Collections.unmodifiableList(paths);
+>>>>>>> takari/master:src/main/java/com/sonatype/nexus/perftest/paths/HttpdLogParser.java
   }
 }

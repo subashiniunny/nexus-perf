@@ -5,12 +5,16 @@
  * Public License Version 1.0, which accompanies this distribution and is available at
  * http://www.eclipse.org/legal/epl-v10.html.
  */
-package com.sonatype.nexus.perftest;
+package com.sonatype.nexus.perftest.jmx;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
+
+import com.sonatype.nexus.perftest.ClientSwarm;
+import com.sonatype.nexus.perftest.RequestRate;
 
 /**
  * JMX endpoint for ClientSwarm.
@@ -72,6 +76,11 @@ public class ClientSwarmMBeanImpl
   @Override
   public String getMetricsDomain() {
     return metricsDomain;
+  }
+
+  @Override
+  public List<String> getFailures() {
+    return clientSwarm.getFailures();
   }
 
   @Override
