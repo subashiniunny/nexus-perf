@@ -25,6 +25,7 @@ import org.apache.http.util.EntityUtils;
 public class DownloadAction
 {
   private final String baseUrl;
+  private final String baseRegistryUrl;
 
   private static class Checksumer
   {
@@ -55,6 +56,7 @@ public class DownloadAction
 
   public DownloadAction(String baseUrl) {
     this.baseUrl = baseUrl;
+    this.baseRegistryUrl = baseUrl.substring(0, baseUrl.indexOf(":8081")) + ":28081";
   }
 
   public long download(HttpClient httpClient, String path) throws IOException {
@@ -64,7 +66,11 @@ public class DownloadAction
       path = path.substring(pref.length());
     }
 
-    final String url = baseUrl.endsWith("/") ? baseUrl + path : baseUrl + "/" + path;
+    String url = baseUrl.endsWith("/") ? baseUrl + path : baseUrl + "/" + path; 
+    if (url.indexOf("registry=") != -1){
+      url = url.substring(0, url.indexOf("registry=")) + "registry="+ baseRegistryUrl;
+    }
+    
     final HttpGet httpGet = new HttpGet(url);
     final HttpResponse response = httpClient.execute(httpGet);
 
@@ -82,7 +88,7 @@ public class DownloadAction
     final Checksumer checksumer = new Checksumer(response.getEntity());
     checksumer.consumeEntity();
 
-    if (!url.contains(".meta/nexus-smartproxy-plugin/handshake/") && !url.endsWith(".sha1")) {
+    if (!url.contains(".meta/nexus-smartproxy-plugin/handshake/") && !url.endsWith(".sha1") && !url.contains("npm")) {
       final String sha1 = getUrlContents(httpClient, url + ".sha1");
       if (sha1 != null) {
         if (!sha1.startsWith(checksumer.getSha1())) {
